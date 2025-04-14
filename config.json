@@ -1,0 +1,10 @@
+{
+  "COOKIE_FILE": "fogis_cookies.json",
+  "FOGIS_LOGIN_URL": "https://fogis.svenskfotboll.se/mdk/Login.aspx?ReturnUrl=%2fmdk%2f",
+  "FOGIS_MATCH_LIST_URL": "https://fogis.svenskfotboll.se/mdk/MatchWebMetoder.aspx/GetMatcherAttRapportera",
+  "MAX_RETRIES": 3,
+  "BACKOFF_FACTOR": 2,
+  "MATCH_FILE": "matches.json",
+  "USE_LOCAL_MATCH_DATA": false,
+  "LOCAL_MATCH_DATA_FILE": "local_matches.json"
+}
