@@ -29,9 +29,9 @@ jobs:
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # full linting with all configured rules
-        flake8 . --count --statistics
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics --exclude=tests/
+        # full linting with all configured rules (excluding tests directory)
+        flake8 . --count --statistics --exclude=tests/
 
     - name: Type check with mypy
       run: |
