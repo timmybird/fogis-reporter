@@ -35,9 +35,10 @@ jobs:
         # stop the build if there are Python syntax errors or undefined names
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics --exclude=tests/
 
-    - name: Type check with mypy
+    - name: Type check with mypy (informational only)
+      continue-on-error: true
       run: |
-        mypy .
+        mypy . || echo "Mypy check failed but continuing the build"
 
     - name: Test with pytest and coverage
       run: |

@@ -15,7 +15,7 @@ The pipeline is defined in `.github/workflows/python-ci.yml` and includes the fo
 This job runs on multiple Python versions (3.8, 3.9, 3.10) and performs:
 
 1. **Critical Linting with Flake8**: Checks for critical errors like syntax errors and undefined names (excluding the tests directory)
-2. **Type Checking with MyPy**: Verifies type annotations according to the configuration in `mypy.ini`
+2. **Type Checking with MyPy (Informational)**: Runs type checking but doesn't fail the build if errors are found
 3. **Testing with Pytest**: Runs all tests and generates a coverage report
 4. **Coverage Upload**: Uploads the coverage report to Codecov for visualization
 
