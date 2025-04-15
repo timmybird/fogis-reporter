@@ -180,6 +180,50 @@ https://fogis.svenskfotboll.se/mdk/MatchWebMetoder.aspx/
 *   **No Match Result Editing/Deletion:** The script currently only supports creating and deleting match events and reporting match results, but not editing existing events or editing/deleting match results.
 *   **Limited Event Types:**  Currently supports a limited set of event types (goals, penalties, cards, substitutions).  Needs to be extended to support all documented event types.
 
+## Development
+
+### Code Quality Tools
+
+This project uses several tools to maintain code quality:
+
+#### Linting with Flake8
+
+We use Flake8 with several plugins to enforce code style and catch potential issues:
+
+```bash
+# Run flake8 on the codebase
+flake8
+```
+
+The configuration is in the `.flake8` file and includes:
+- Line length of 88 characters (matching Black's default)
+- Google import style
+- Google docstring convention
+- Various plugins for additional checks
+
+#### Type Checking with MyPy
+
+We use MyPy in strict mode to ensure proper type annotations throughout the codebase:
+
+```bash
+# Run mypy on the codebase
+mypy .
+```
+
+The configuration is in the `mypy.ini` file and enforces strict type checking.
+
+#### Pre-commit Hooks
+
+We use pre-commit to automatically run checks before each commit:
+
+```bash
+# Install pre-commit hooks
+pre-commit install
+
+# Run pre-commit on all files
+pre-commit run --all-files
+```
+
 ### Future Enhancements (Roadmap)
 
 *   Implement support for all documented match event types.
@@ -190,7 +234,6 @@ https://fogis.svenskfotboll.se/mdk/MatchWebMetoder.aspx/
 *   Explore voice input integration for live event reporting.
 *   Investigate and handle API rate limits.
 *   Add more comprehensive test coverage.
-*   Implement static type checking with mypy.
 *   ... (Add other potential features) ...
 
 ### Disclaimer
