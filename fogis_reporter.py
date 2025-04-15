@@ -7,7 +7,7 @@ from api_utils import safe_fetch_json_list
 # Import emoji dictionaries
 from emoji_config import EVENT_EMOJIS, MENU_EMOJIS
 
-from fogis_api_client.fogis_api_client import FogisApiClient, event_types, FogisLoginError
+from fogis_api_client.fogis_api_client import FogisApiClient, EVENT_TYPES, FogisLoginError
 
 from fogis_data_parser import FogisDataParser
 from match_context import MatchContext, Scores, Score
@@ -543,7 +543,7 @@ def _report_substitution_event(match_context: MatchContext, team_number: int,
     game_team_id = team1_id if team_number == 1 else team2_id
     event_data = {"matchhandelseid": 0, "matchid": match_id, "period": period,
                   "matchminut": minute,
-                  "sekund": 0, "matchhandelsetypid": event_types[17],  # Substitution event type ID (17)
+                  "sekund": 0, "matchhandelsetypid": EVENT_TYPES[17],  # Substitution event type ID (17)
                   "matchlagid": game_team_id,
                   "spelareid": int(player_id_in), "spelareid2": int(player_id_out),
                   "hemmamal": team1_score,
@@ -618,8 +618,8 @@ def _report_player_event(match_context: MatchContext, team_number: int, selected
     period_length = match_context.period_length
     num_extra_periods = match_context.num_extra_periods
     extra_period_length = match_context.extra_period_length
-    event_type_id = list(event_types.keys())[
-        list(event_types.values()).index(selected_event_type)]  # Get numeric event_type_id from selected_event_type
+    event_type_id = list(EVENT_TYPES.keys())[
+        list(EVENT_TYPES.values()).index(selected_event_type)]  # Get numeric event_type_id from selected_event_type
     event_type_name = selected_event_type["name"]
     is_goal_event = selected_event_type.get("goal", False)
 
@@ -697,7 +697,7 @@ def _display_current_events_table(match_context: MatchContext):
     halftime_score_team2 = scores.halftime.away
     match_events_json = match_context.match_events_json
 
-    formatter = MatchEventTableFormatter(event_types, match_context.team1_name, match_context.team2_name,
+    formatter = MatchEventTableFormatter(EVENT_TYPES, match_context.team1_name, match_context.team2_name,
                                          match_context.team1_id, match_context.team2_id)
     table_string = formatter.format_structured_table(
         match_events_json, match_context.team1_players_json, match_context.team2_players_json,
@@ -720,16 +720,16 @@ def _get_event_details_from_input(team_number_input, team1_players_json, team2_p
             return None, None, None, None, None, None  # Indicate invalid input
 
         print("\nSelect Event Type:")
-        for event_type_id, event_type in event_types.items():  # Iterate through event_types.items()
+        for event_type_id, event_type in EVENT_TYPES.items():  # Iterate through EVENT_TYPES.items()
             if not event_type.get("control_event") and event_type_id is not None:  # Skip control events and "None" key
                 print(f"{event_type_id}: {event_type['name']}")  # Use event_type_id (numerical key)
 
         event_choice_str = input("Enter event type number: ")  # Prompt for "event type number" (numerical ID)
         if event_choice_str.isdigit():
             event_choice = int(event_choice_str)
-            if event_choice in event_types and not event_types[event_choice].get(
+            if event_choice in EVENT_TYPES and not EVENT_TYPES[event_choice].get(
                     "control_event"):  # Check if numerical input is valid KEY and NOT a control event
-                selected_event_type = event_types[event_choice]
+                selected_event_type = EVENT_TYPES[event_choice]
                 event_type_id = event_choice  # Use numerical key directly as event_type_id
                 event_type_name = selected_event_type["name"]
                 is_goal_event = selected_event_type.get("goal", False)
@@ -1048,7 +1048,7 @@ def main():
             print("\nTeam Sheets and Match Events Fetched Successfully (or are empty)!")  # More accurate success message
 
             # --- Display event table immediately after match selection ---
-            formatter = MatchEventTableFormatter(event_types, team1_name, team2_name, team1_id,
+            formatter = MatchEventTableFormatter(EVENT_TYPES, team1_name, team2_name, team1_id,
                                                  team2_id)  # Instantiate formatter
 
             scores: Scores = FogisDataParser.calculate_scores(match_context)
