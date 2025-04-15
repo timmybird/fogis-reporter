@@ -14,8 +14,8 @@ The pipeline is defined in `.github/workflows/python-ci.yml` and includes the fo
 
 This job runs on multiple Python versions (3.8, 3.9, 3.10) and performs:
 
-1. **Critical Linting with Flake8**: Checks for critical errors like syntax errors and undefined names (excluding the tests directory)
-2. **Type Checking with MyPy (Informational)**: Runs type checking but doesn't fail the build if errors are found
+1. **Linting with Flake8**: Checks code style and quality according to the rules defined in `.flake8` (excluding the tests directory)
+2. **Type Checking with MyPy**: Verifies type annotations according to the configuration in `mypy.ini`
 3. **Testing with Pytest**: Runs all tests and generates a coverage report
 4. **Coverage Upload**: Uploads the coverage report to Codecov for visualization
 
@@ -28,14 +28,6 @@ This job runs all pre-commit hooks defined in `.pre-commit-config.yaml` on all f
 3. Valid YAML and JSON files
 4. No debug statements in code
 5. No large files added to the repository
-
-### Style Check Job
-
-This job performs a full style check with Flake8 but is configured as informational only and won't fail the build. This allows us to:
-
-1. See all style issues in the codebase
-2. Track progress as style issues are fixed over time
-3. Maintain a passing CI pipeline while gradually improving code quality
 
 ## When the Pipeline Runs
 
