@@ -1,4 +1,8 @@
+"""Data classes for storing match context and score information."""
+
 from dataclasses import dataclass, field
+from typing import Any, Dict, List
+
 from fogis_api_client.fogis_api_client import FogisApiClient
 
 
@@ -11,25 +15,30 @@ class Score:
 
 @dataclass
 class Scores:
-    """Represents all scores for a match, including regular time, halftime, extra time, and penalties."""
+    """Represents all scores for a match.
+
+    Includes regular time, halftime, extra time, and penalties.
+    """
     regular_time: Score = field(default_factory=Score)  # Regular time score
     halftime: Score = field(default_factory=Score)  # Halftime score
-    extra_time: Score = field(default_factory=lambda: Score(home=-1, away=-1) )  # Extra time score
-    penalties: Score = field(default_factory=lambda: Score(home=-1, away=-1) )  # Penalty shootout score
+    # Extra time score (default -1 means not played)
+    extra_time: Score = field(default_factory=lambda: Score(home=-1, away=-1))
+    # Penalty shootout score (default -1 means not played)
+    penalties: Score = field(default_factory=lambda: Score(home=-1, away=-1))
 
 
 @dataclass
 class MatchContext:
-    """
-    Context object to hold all relevant data for a match.
+    """Context object to hold all relevant data for a match.
+
     Includes API client, match details, player lists, and match events.
     Provides dynamic properties to access calculated scores.
     """
     api_client: FogisApiClient
     selected_match: dict
-    team1_players_json: list[dict]
-    team2_players_json: list[dict]
-    match_events_json: list[dict]
+    team1_players_json: List[Dict[str, Any]]
+    team2_players_json: List[Dict[str, Any]]
+    match_events_json: List[Dict[str, Any]]
     num_periods: int
     period_length: int
     num_extra_periods: int

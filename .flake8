@@ -4,8 +4,7 @@ max-line-length = 88
 
 # Ignore specific rules
 ignore =
-    # W1203: Allow f-strings in logging for better readability
-    W1203,
+    # F-strings in logging (not a standard flake8 rule, would need flake8-logging-format plugin)
     # E203: Whitespace before ':' - conflicts with Black formatting
     E203,
     # W503: Line break before binary operator - conflicts with Black formatting
