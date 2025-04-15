@@ -252,7 +252,7 @@ def report_results_menu(match_context: MatchContext):
             print("Invalid option. Please try again.")
 
 
-def _report_control_event_interactively(match_context: MatchContext, control_event_input: str = None):
+def _report_control_event_interactively(match_context: MatchContext, control_event_input: Optional[str] = None):
     """Interactively reports control events (Period End, Game End) - Updated for API format."""
 
     match_id = match_context.match_id
