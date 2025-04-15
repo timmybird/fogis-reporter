@@ -136,7 +136,8 @@ def report_match_events_menu(match_context: MatchContext):
             # Add confirmation step to prevent accidental clearing
             confirm = input("Are you sure you want to clear ALL events? Type 'clear' to confirm: ")
             if confirm.lower() == "clear":
-                match_context.match_events_json = _handle_clear_events(match_context)
+                new_events = _handle_clear_events(match_context)
+                match_context.match_events_json = new_events
                 _display_current_events_table(match_context)
             else:
                 print("Clear operation cancelled.")
@@ -164,15 +165,21 @@ def report_team_event(match_context: MatchContext, team_number: int):
             return
 
         if selected_event_type["name"] == "Substitution":
-            match_context.match_events_json = _report_substitution_event(match_context, team_number,
-                                                                         current_team_players_json,
-                                                                         team1_score, team2_score)
+            new_events = _report_substitution_event(match_context, team_number,
+                                                current_team_players_json,
+                                                team1_score, team2_score)
+            if new_events is not None:
+                match_context.match_events_json = new_events
         elif selected_event_type["name"] == "Team Official Action":
-            match_context.match_events_json = _report_team_official_action_event(match_context)
+            new_events = _report_team_official_action_event(match_context)
+            if new_events is not None:
+                match_context.match_events_json = new_events
         else:
-            match_context.match_events_json = _report_player_event(match_context, team_number, selected_event_type,
-                                                                   current_team_players_json, team1_score,
-                                                                   team2_score)
+            new_events = _report_player_event(match_context, team_number, selected_event_type,
+                                           current_team_players_json, team1_score,
+                                           team2_score)
+            if new_events is not None:
+                match_context.match_events_json = new_events
 
         if match_context.match_events_json is not None:  # Event reporting was successful
             _display_current_events_table(match_context)  # Display table after each event
@@ -216,7 +223,9 @@ def report_staff_events_menu(match_context: MatchContext):
         if choice == "":
             return  # Go back to main menu
         elif choice == "1":
-            match_context.match_events_json = _report_team_official_action_event(match_context)
+            new_events = _report_team_official_action_event(match_context)
+            if new_events is not None:
+                match_context.match_events_json = new_events
             if match_context.match_events_json is not None:
                 _display_current_events_table(match_context)
         else:

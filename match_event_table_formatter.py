@@ -137,10 +137,12 @@ class MatchEventTableFormatter:
                                   team1_players_json: List[Dict[str, Any]],
                                   team2_players_json: List[Dict[str, Any]]) -> str:
         """Simplified helper function to get player jersey number DIRECTLY from event data."""
-        return event.get('trojnummer', "N/A")  # Get trojnummer directly from event JSON
+        jersey = event.get('trojnummer')
+        return str(jersey) if jersey is not None else "N/A"  # Get trojnummer directly from event JSON
 
     def _get_player2_jersey_from_event(self, event: Dict[str, Any], team_id: int,
                                    team1_players_json: List[Dict[str, Any]],
                                    team2_players_json: List[Dict[str, Any]]) -> str:
         """Simplified helper function to get player2 jersey number DIRECTLY from event data (for substitutions)."""
-        return event.get('trojnummer2', "N/A")  # Get trojnummer2 directly from event JSON (assuming it exists for player2 in subs)
+        jersey = event.get('trojnummer2')
+        return str(jersey) if jersey is not None else "N/A"  # Get trojnummer2 directly from event JSON
