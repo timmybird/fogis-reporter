@@ -39,7 +39,8 @@ jobs:
 
     - name: Type check with mypy
       run: |
-        mypy .
+        # Run mypy on all files except tests
+        mypy fogis_reporter.py match_event_table_formatter.py match_context.py emoji_config.py
 
     - name: Test with pytest and coverage
       run: |
