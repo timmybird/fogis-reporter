@@ -12,7 +12,7 @@ The pipeline is defined in `.github/workflows/python-ci.yml` and includes the fo
 
 ### Test Job
 
-This job runs on multiple Python versions (3.7, 3.8, 3.9) and performs:
+This job runs on multiple Python versions (3.8, 3.9, 3.10) and performs:
 
 1. **Linting with Flake8**: Checks code style and quality according to the rules defined in `.flake8`
 2. **Type Checking with MyPy**: Verifies type annotations according to the configuration in `mypy.ini`
