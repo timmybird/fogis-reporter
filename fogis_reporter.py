@@ -521,12 +521,20 @@ def _report_substitution_event(match_context: MatchContext, team_number: int,
     jersey_number_in = input("Jersey number of player coming IN (substitute): ")
     jersey_number_out = input("Jersey number of player going OUT (being substituted): ")
 
-    player_id_in = FogisDataParser.get_player_id_by_team_jersey(current_team_players_json, jersey_number_in)
-    player_id_out = FogisDataParser.get_player_id_by_team_jersey(current_team_players_json, jersey_number_out)
+    # Convert jersey numbers to integers
+    try:
+        jersey_number_in_int = int(jersey_number_in)
+        jersey_number_out_int = int(jersey_number_out)
+    except ValueError:
+        print("Jersey numbers must be integers.")
+        return None
+
+    player_id_in = FogisDataParser.get_player_id_by_team_jersey(current_team_players_json, jersey_number_in_int)
+    player_id_out = FogisDataParser.get_player_id_by_team_jersey(current_team_players_json, jersey_number_out_int)
     game_participant_id_in = FogisDataParser.get_matchdeltagareid_by_team_jersey(current_team_players_json,
-                                                                                 jersey_number_in)
+                                                                                 jersey_number_in_int)
     game_participant_id_out = FogisDataParser.get_matchdeltagareid_by_team_jersey(current_team_players_json,
-                                                                                  jersey_number_out)
+                                                                                  jersey_number_out_int)
 
     if not player_id_in or not player_id_out:
         print("Invalid jersey number(s). Players not found.")
@@ -570,16 +578,16 @@ def _report_team_official_action_event(match_context: MatchContext) -> Optional[
     api_client = match_context.api_client
     match_id = match_context.match_id
 
-    team_official_id = input("Enter Team Official ID: ")
-    lagrollid = input("Enter Team Official Role ID (Lagrollid): ")
-    avvisadmatchminut = input("Enter Dismissal Minute (or 0 if no dismissal): ")
+    team_official_id_str = input("Enter Team Official ID: ")
+    lagrollid_str = input("Enter Team Official Role ID (Lagrollid): ")
+    avvisadmatchminut_str = input("Enter Dismissal Minute (or 0 if no dismissal): ")
     avvisadlindrig_str = input("Minor Dismissal (yes/no): ").lower()
     avvisadgrov_str = input("Severe Dismissal (yes/no): ").lower()
     varnad_str = input("Caution/Warning (yes/no): ").lower()
     try:
-        team_official_id = int(team_official_id)
-        lagrollid = int(lagrollid)
-        avvisadmatchminut = int(avvisadmatchminut)
+        team_official_id = int(team_official_id_str) if team_official_id_str else 0
+        lagrollid = int(lagrollid_str) if lagrollid_str else 0
+        avvisadmatchminut = int(avvisadmatchminut_str) if avvisadmatchminut_str else 0
         avvisadlindrig = avvisadlindrig_str == 'yes'
         avvisadgrov = avvisadgrov_str == 'yes'
         varnad = varnad_str == 'yes'
@@ -624,8 +632,14 @@ def _report_player_event(match_context: MatchContext, team_number: int, selected
     is_goal_event = selected_event_type.get("goal", False)
 
     jersey_number = input("Jersey number of player: ")
-    player_id = FogisDataParser.get_player_id_by_team_jersey(current_team_players_json, jersey_number)
-    game_participant_id = FogisDataParser.get_matchdeltagareid_by_team_jersey(current_team_players_json, jersey_number)
+    try:
+        jersey_number_int = int(jersey_number)
+    except ValueError:
+        print("Jersey number must be an integer.")
+        return None
+
+    player_id = FogisDataParser.get_player_id_by_team_jersey(current_team_players_json, jersey_number_int)
+    game_participant_id = FogisDataParser.get_matchdeltagareid_by_team_jersey(current_team_players_json, jersey_number_int)
 
     if not player_id:
         print(f"Player with jersey number {jersey_number} not found for Team {team_number}.")
@@ -676,7 +690,7 @@ def _report_player_event(match_context: MatchContext, team_number: int, selected
         return None  # Indicate failure
 
 
-def _handle_clear_events(match_context: MatchContext) -> Optional[List[Dict[str, Any]]]:
+def _handle_clear_events(match_context: MatchContext) -> List[Dict[str, Any]]:
     """Clears all match events and fetches the updated event list."""
     api_client = match_context.api_client
     match_id = match_context.match_id
@@ -799,7 +813,9 @@ def _report_match_results_interactively(match_context: MatchContext):
         result_response = api_client.report_match_result(result_data)  # Report results to API
         # result_response is expected to be None or null, so we don't check it directly
 
-        fetched_scores: Scores = _verify_match_results(match_context, reported_scores)  # Verify and get fetched scores
+        fetched_scores = _verify_match_results(match_context, reported_scores)  # Verify and get fetched scores
+        if fetched_scores is None:
+            fetched_scores = Scores()  # Use default scores if verification fails
         if fetched_scores:  # Verification successful (fetched_scores is a Scores object)
             print(
                 "\nMatch Result Report Response: (API acknowledged)")  # Indicate API acknowledgement even if response is null
