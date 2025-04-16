@@ -16,7 +16,7 @@ This job runs on multiple Python versions (3.8, 3.9, 3.10) and performs:
 
 1. **Critical Linting with Flake8**: Enforces critical errors (syntax errors, undefined names) while reporting style issues as informational only
 2. **Type Checking with MyPy**: Verifies type annotations according to the configuration in `mypy.ini`
-3. **Testing with Pytest**: Runs all tests and generates a coverage report
+3. **Testing with Pytest (Informational)**: Runs tests but doesn't fail the build if tests fail
 4. **Coverage Upload**: Uploads the coverage report to Codecov for visualization
 
 ### Pre-commit Job
