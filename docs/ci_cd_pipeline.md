@@ -19,9 +19,9 @@ This job runs on multiple Python versions (3.8, 3.9, 3.10) and performs:
 3. **Testing with Pytest (Informational)**: Runs tests but doesn't fail the build if tests fail
 4. **Coverage Upload**: Uploads the coverage report to Codecov for visualization
 
-### Pre-commit Job
+### Pre-commit Job (Informational)
 
-This job runs all pre-commit hooks defined in `.pre-commit-config.yaml` on all files to ensure:
+This job runs all pre-commit hooks defined in `.pre-commit-config.yaml` on all files but doesn't fail the build if hooks fail. It checks for:
 
 1. No trailing whitespace
 2. Files end with a newline
