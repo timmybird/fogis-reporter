@@ -1,9 +1,10 @@
+from typing import Dict, List, Any, Optional
 from tabulate import tabulate
 from emoji_config import EVENT_EMOJIS
 
 
 class MatchEventTableFormatter:
-    def __init__(self, event_types, team1_name, team2_name, team1_id, team2_id):
+    def __init__(self, event_types: Dict[int, Dict[str, Any]], team1_name: str, team2_name: str, team1_id: int, team2_id: int):
         """
         Initializes the MatchEventTableFormatter.
 
@@ -19,7 +20,7 @@ class MatchEventTableFormatter:
         self.team2_name = team2_name
         self.team1_id = team1_id  # ADDED
         self.team2_id = team2_id  # ADDED
-        self.event_categories = {
+        self.event_categories: Dict[str, List[str]] = {
             "Goals": ["Regular Goal", "Header Goal", "Corner Goal", "Free Kick Goal", "Own Goal", "Penalty Goal"],
             "Yellow Cards": ["Yellow Card", "Second Yellow Card"],
             "Red Cards": ["Red Card (Denying Goal Opportunity)", "Red Card (Other Reasons)"],
@@ -28,7 +29,7 @@ class MatchEventTableFormatter:
         }
         self._populate_other_events_category()
 
-        self.category_icons = {
+        self.category_icons: Dict[str, str] = {
             "Goals": "⚽️ ",
             "Yellow Cards": "🟨 ",
             "Red Cards": "🟥 ",
@@ -36,24 +37,26 @@ class MatchEventTableFormatter:
             "Other Events": "ℹ️ "
         }
 
-    def _populate_other_events_category(self):
+    def _populate_other_events_category(self) -> None:
         """Populates the 'Other Events' category with event types not in other categories."""
-        categorized_event_names = []
+        categorized_event_names: List[str] = []
         for category_list in self.event_categories.values():
-            categorized_event_names.extend(category_list)
+            if isinstance(category_list, list):
+                categorized_event_names.extend(category_list)
 
         for event_type_id, event_data in self.event_types.items():
             event_name = event_data['name']
             if event_name not in categorized_event_names and not event_data.get("control_event"):
                 self.event_categories["Other Events"].append(event_name)
 
-    def format_structured_table(self, match_events_json, team1_players_json, team2_players_json,
-                             team1_score, team2_score, halftime_score_team1, halftime_score_team2):
+    def format_structured_table(self, match_events_json: List[Dict[str, Any]], team1_players_json: List[Dict[str, Any]],
+                             team2_players_json: List[Dict[str, Any]], team1_score: int, team2_score: int,
+                             halftime_score_team1: int, halftime_score_team2: int) -> str:
         """Formats match events into a structured table with scoreline, skipping 'Unknown Team' events."""
         if not match_events_json:
             return "No events reported yet."
 
-        structured_data = {}
+        structured_data: Dict[str, Dict[str, List[str]]] = {}
         structured_data["Score"] = {self.team1_name: [], self.team2_name: []}
         structured_data["Score"][self.team1_name].append(f"Full: {team1_score}")
         structured_data["Score"][self.team2_name].append(f"Full: {team2_score}")
@@ -130,10 +133,16 @@ class MatchEventTableFormatter:
 
         return tabulate(table_rows, headers=headers, tablefmt="grid", numalign="left", stralign="left")
 
-    def _get_player_jersey_from_event(self, event, team_id, team1_players_json, team2_players_json):
+    def _get_player_jersey_from_event(self, event: Dict[str, Any], team_id: int,
+                                  team1_players_json: List[Dict[str, Any]],
+                                  team2_players_json: List[Dict[str, Any]]) -> str:
         """Simplified helper function to get player jersey number DIRECTLY from event data."""
-        return event.get('trojnummer', "N/A")  # Get trojnummer directly from event JSON
+        jersey = event.get('trojnummer')
+        return str(jersey) if jersey is not None else "N/A"  # Get trojnummer directly from event JSON
 
-    def _get_player2_jersey_from_event(self, event, team_id, team1_players_json, team2_players_json):
+    def _get_player2_jersey_from_event(self, event: Dict[str, Any], team_id: int,
+                                   team1_players_json: List[Dict[str, Any]],
+                                   team2_players_json: List[Dict[str, Any]]) -> str:
         """Simplified helper function to get player2 jersey number DIRECTLY from event data (for substitutions)."""
-        return event.get('trojnummer2', "N/A")  # Get trojnummer2 directly from event JSON (assuming it exists for player2 in subs)
+        jersey = event.get('trojnummer2')
+        return str(jersey) if jersey is not None else "N/A"  # Get trojnummer2 directly from event JSON
