@@ -1,0 +1,40 @@
+[flake8]
+# Match Black's default line length
+max-line-length = 88
+
+# Ignore specific rules
+ignore =
+    # F-strings in logging (not a standard flake8 rule, would need flake8-logging-format plugin)
+    # E203: Whitespace before ':' - conflicts with Black formatting
+    E203,
+    # W503: Line break before binary operator - conflicts with Black formatting
+    W503
+
+# Exclude directories and files
+exclude =
+    .git,
+    __pycache__,
+    build,
+    dist,
+    venv,
+    .env,
+    .venv
+
+# Enable plugins
+# flake8-docstrings: Check docstring style
+# flake8-import-order: Check import order
+# flake8-bugbear: Find likely bugs and design problems
+# flake8-comprehensions: Find better ways to use comprehensions
+# flake8-return: Check return statements
+plugins =
+    flake8-docstrings
+    flake8-import-order
+    flake8-bugbear
+    flake8-comprehensions
+    flake8-return
+
+# Import order style
+import-order-style = google
+
+# Docstring style
+docstring-convention = google
