@@ -11,6 +11,27 @@ This Python script interacts with the Swedish Football Association (FOGIS) Match
 
 This script is intended to automate the process of reporting match events to the FOGIS system, potentially for referees or match officials.
 
+## Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/fogis-reporter.git
+   cd fogis-reporter
+   ```
+
+2. Create and activate a virtual environment:
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+   ```
+
+3. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+> **Note:** This project requires fogis-api-client-timmyBird version 0.2.4 or higher to function correctly. Earlier versions may encounter API errors due to parameter name mismatches.
+
 ## API Documentation Summary
 
 Based on reverse engineering and testing, here's a summary of key findings about the FOGIS Match Event API:
