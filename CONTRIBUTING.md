@@ -20,11 +20,19 @@ Please be respectful and considerate of others when contributing to this project
 
 1. Fork the repository
 2. Clone your fork: `git clone https://github.com/your-username/fogis-reporter.git`
-3. Create a virtual environment: `python -m venv venv`
+3. Run the setup script to quickly set up your development environment:
+   ```bash
+   python scripts/setup_dev.py
+   ```
 4. Activate the virtual environment:
-   - Windows: `venv\Scripts\activate`
-   - Unix/MacOS: `source venv/bin/activate`
-5. Install dependencies: `pip install -r requirements.txt`
+   - Windows: `.venv\Scripts\activate`
+   - Unix/MacOS: `source .venv/bin/activate`
+
+The setup script will:
+- Create a virtual environment
+- Install dependencies from requirements.txt
+- Set up pre-commit hooks
+- Create necessary directories
 
 ## Development Workflow
 
@@ -70,10 +78,63 @@ Please be respectful and considerate of others when contributing to this project
 
 - Write tests for all new features and bug fixes
 - Run the test suite before submitting a PR:
-  ```
+  ```bash
+  # Run all tests
   python -m pytest
+
+  # Run tests with coverage
+  pytest --cov=.
+
+  # Run tests only on changed files (faster)
+  python scripts/run_tests_changed.py
   ```
 - Aim for high test coverage
+
+## Optimized Development Workflow
+
+We've optimized the development workflow to make it faster and more efficient:
+
+### Helper Scripts
+
+The project includes several helper scripts to streamline development:
+
+```bash
+# Run tests only on changed files
+python scripts/run_tests_changed.py
+
+# Run linting only on changed files
+python scripts/lint_changed.py
+```
+
+### Linting and Type Checking
+
+```bash
+# Run flake8 on specific files (faster than running on the entire codebase)
+flake8 path/to/file.py
+
+# Run mypy with incremental mode for faster type checking
+mypy path/to/file.py
+```
+
+### Pre-commit Hooks
+
+We use pre-commit to automatically run checks before each commit:
+
+```bash
+# Set up pre-commit hooks with the dedicated script
+python scripts/setup_pre_commit.py
+
+# Run pre-commit on specific files (faster)
+pre-commit run --files path/to/file.py
+
+# Run pre-commit on all files
+pre-commit run --all-files
+```
+
+The setup script will:
+- Install pre-commit if not already installed
+- Set up the hooks for the repository
+- Update the hooks to the latest versions
 
 ## Special Guidelines for AI Assistants
 
