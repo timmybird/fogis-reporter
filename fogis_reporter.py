@@ -1,6 +1,6 @@
 import json
 import os
-from typing import Tuple, Optional, Dict, List, Any
+from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
 # Import safe API wrapper
 from api_utils import safe_fetch_json_list
@@ -524,7 +524,9 @@ def _add_control_event_with_implicit_events(control_event: Dict[str, Any], match
             if api_response is not None:  # Check if api_response is not None for success
                 print(f"  API: Event type {event_json['matchhandelsetypid']} {action_type} successfully.")
                 # Use safe_fetch_json_list to ensure the response is a list of dictionaries
-                return safe_fetch_json_list(lambda x: x, api_response)  # Return the api_response as a list
+                # Cast the result to the expected return type
+                result = safe_fetch_json_list(lambda x: x, api_response)
+                return cast(List[Dict[str, Any]], result)
             else:
                 print(
                     f"  API WARNING: Event type {event_json['matchhandelsetypid']} {action_type} - API acknowledged but no success response.")
@@ -742,7 +744,7 @@ def _report_substitution_event(match_context: MatchContext, team_number: int,
         print(json.dumps(report_response, indent=2, ensure_ascii=False))
         # Use safe API wrapper to ensure match_events_json is always a list of dictionaries
         match_events_json = safe_fetch_json_list(api_client.fetch_match_events_json, match_id)
-        return match_events_json  # Return updated events
+        return cast(List[Dict[str, Any]], match_events_json)  # Return updated events with proper type
     else:
         print("\nFailed to report substitution event.")
         return None  # Indicate failure
@@ -783,7 +785,7 @@ def _report_team_official_action_event(match_context: MatchContext) -> Optional[
         print(json.dumps(report_response, indent=2, ensure_ascii=False))
         # Use safe API wrapper to ensure match_events_json is always a list of dictionaries
         match_events_json = safe_fetch_json_list(api_client.fetch_match_events_json, match_id)
-        return match_events_json  # Return updated events
+        return cast(List[Dict[str, Any]], match_events_json)  # Return updated events with proper type
     else:
         print("\nFailed to report team official action.")
         return None  # Indicate failure
@@ -859,7 +861,7 @@ def _report_player_event(match_context: MatchContext, team_number: int, selected
         print(json.dumps(report_response, indent=2, ensure_ascii=False))
         # Use safe API wrapper to ensure match_events_json is always a list of dictionaries
         match_events_json = safe_fetch_json_list(api_client.fetch_match_events_json, match_id)
-        return match_events_json  # Return updated events
+        return cast(List[Dict[str, Any]], match_events_json)  # Return updated events with proper type
     else:
         print("\nFailed to report match event.")
         return None  # Indicate failure
@@ -873,7 +875,7 @@ def _handle_clear_events(match_context: MatchContext) -> List[Dict[str, Any]]:
     # Use safe API wrapper to ensure match_events_json is always a list of dictionaries
     match_events_json = safe_fetch_json_list(api_client.fetch_match_events_json, match_id)
     print("All match events cleared.")
-    return match_events_json
+    return cast(List[Dict[str, Any]], match_events_json)  # Return with proper type
 
 
 def _display_current_events_table(match_context: MatchContext):
@@ -1102,9 +1104,10 @@ def _verify_match_results(
             elif result['matchresultattypid'] == 1:  # Fulltime result
                 fetched_scores.regular_time = Score(home=result['matchlag1mal'], away=result['matchlag2mal'])
 
+        # Check if we have both halftime and fulltime scores
         if fetched_scores.halftime is None or fetched_scores.regular_time is None:
             print("ERROR: Could not find both halftime and fulltime results in API response.")
-            return None
+            return None  # This is reachable if the API response is incomplete
 
         # --- Comparison (no change here) ---
         halftime_match = (fetched_scores.halftime.home == reported_scores.halftime.home and

@@ -53,4 +53,6 @@ class MatchContext:
     def scores(self) -> 'Scores':
         """Dynamically calculates and returns all scores for the match."""
         from fogis_data_parser import FogisDataParser
-        return FogisDataParser.calculate_scores(self)
+        # Use explicit cast to ensure correct return type
+        from typing import cast
+        return cast('Scores', FogisDataParser.calculate_scores(self))
