@@ -188,7 +188,7 @@ def report_team_event(match_context: MatchContext, team_number: int):
         print(e)  # Print specific error message from input parsing or event reporting
 
 
-def _determine_event_type_from_timestamp(timestamp: int, match_context: MatchContext) -> tuple[int, str, int]:
+def _determine_event_type_from_timestamp(timestamp: int, match_context: MatchContext) -> Tuple[int, str, int]:
     """
     Automatically determines the appropriate event type based on the timestamp and match structure.
 
