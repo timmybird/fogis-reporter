@@ -6,7 +6,7 @@ import sys
 sys.modules['fogis_api_client'] = MagicMock()
 sys.modules['fogis_api_client.fogis_api_client'] = MagicMock()
 sys.modules['fogis_api_client.fogis_api_client'].FogisApiClient = MagicMock
-sys.modules['fogis_api_client.fogis_api_client'].event_types = {}
+sys.modules['fogis_api_client.fogis_api_client'].EVENT_TYPES = {}
 sys.modules['fogis_api_client.fogis_api_client'].FogisLoginError = Exception
 
 # Mock other dependencies
@@ -38,8 +38,8 @@ def test_report_period_start():
         # Mock input for period and minute
         with patch('builtins.input', side_effect=['1', '1']):
             # Call the function
-            # We need to mock event_types to test Period Start
-            with patch('fogis_reporter.event_types', {31: {"name": "Period Start"}}):
+            # We need to mock EVENT_TYPES to test Period Start
+            with patch('fogis_reporter.EVENT_TYPES', {31: {"name": "Period Start"}}):
                 # We need to patch _add_control_event_with_implicit_events to avoid API calls
                 with patch('fogis_reporter._add_control_event_with_implicit_events') as mock_add_control:
                     _report_control_event_interactively(match_context_mock, "3")  # 3 = Period Start (custom)

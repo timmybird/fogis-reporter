@@ -106,7 +106,7 @@ def test_report_team_event(mocker, capsys, base_match_context):
 
     # Mock event types
     event_types_mock = {6: {"name": "Goal", "goal": True}}
-    mocker.patch("fogis_reporter.event_types", event_types_mock)
+    mocker.patch("fogis_reporter.EVENT_TYPES", event_types_mock)
 
     # Mock the API response
     api_client_mock.report_match_event.return_value = {"status": "ok"}

@@ -6,7 +6,7 @@ import sys
 sys.modules['fogis_api_client'] = MagicMock()
 sys.modules['fogis_api_client.fogis_api_client'] = MagicMock()
 sys.modules['fogis_api_client.fogis_api_client'].FogisApiClient = MagicMock
-sys.modules['fogis_api_client.fogis_api_client'].event_types = {}
+sys.modules['fogis_api_client.fogis_api_client'].EVENT_TYPES = {}
 sys.modules['fogis_api_client.fogis_api_client'].FogisLoginError = Exception
 
 # Mock other dependencies
