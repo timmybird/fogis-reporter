@@ -245,6 +245,48 @@ pre-commit install
 pre-commit run --all-files
 ```
 
+## Features
+
+### Smart Goal Reporting
+
+The application includes a streamlined goal reporting system that makes it faster and easier to record goals:
+
+* **Single Input Point**: Enter a jersey number directly to record a regular goal by that player
+* **Special Goal Types**: Use single-letter codes to access different goal types:
+  * `r` = Regular Goal (same as entering jersey number)
+  * `h` = Header Goal
+  * `c` = Corner Goal
+  * `f` = Free Kick Goal
+  * `o` = Own Goal
+  * `p` = Penalty Goal
+
+**Example Usage:**
+* Enter `10` to record a regular goal by player #10
+* Enter `p` then `7` to record a penalty goal by player #7
+* Enter `o` then `3` to record an own goal by player #3
+
+### Smart Time Control Event Detection
+
+The application includes intelligent timestamp-based detection for time control events:
+
+* **Automatic Event Type Detection**: Simply enter a timestamp (minute) and the system automatically determines if it's a period start, period end, or game end based on the match structure
+* **Match Structure Awareness**: The system knows the number of periods, period lengths, and extra time settings for the match
+* **Visual Timeline**: Displays all valid timestamps for the match with clear indications of what each timestamp represents
+* **Stoppage Time Support**: Handles stoppage time notation (e.g., 45+2, 90+3)
+
+**Example Usage:**
+* Enter `45` to record the end of the first half
+* Enter `90` to record the end of the match
+* Enter `1` to record the start of the first period
+* Enter `46` to record the start of the second half
+
+### Other Features
+
+* Interactive menu system for reporting various event types
+* Support for reporting cards, substitutions, and other match events
+* Match result reporting with verification
+* Event table display showing current match state
+
 ### Future Enhancements (Roadmap)
 
 *   Implement support for all documented match event types.
