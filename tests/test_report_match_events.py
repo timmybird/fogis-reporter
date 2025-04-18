@@ -1,11 +1,16 @@
-import pytest
+"""Tests for the match events reporting functionality."""
+
 from unittest.mock import MagicMock
+
+import pytest
 
 # Create a mock for FogisApiClient instead of importing it
 FogisApiClient = MagicMock
 
-from fogis_data_parser import FogisDataParser
-from fogis_reporter import report_match_events_menu, MatchContext  # Import MatchContext
+# Import after mocks are set up
+from fogis_data_parser import FogisDataParser  # noqa: E402
+from fogis_reporter import MatchContext, report_match_events_menu  # noqa: E402
+
 
 @pytest.fixture
 def base_match_context():
@@ -40,8 +45,7 @@ def base_match_context():
 
 
 def test_report_match_events_done_input(mocker, capsys, base_match_context):
-    """Unit test for report_match_events_menu - 'done' input scenario using MatchContext."""
-
+    """Test report_match_events_menu with 'done' input using MatchContext."""
     # 1.  Use the fixture for the base MatchContext
     match_context = base_match_context
     match_context.team1_name = "Team 1"
@@ -64,8 +68,7 @@ def test_report_match_events_done_input(mocker, capsys, base_match_context):
 
 
 def test_report_match_events_clear_input(mocker, capsys, base_match_context):
-    """Unit test for report_match_events_menu - 'clear' input scenario using MatchContext."""
-
+    """Test report_match_events_menu with 'clear' input using MatchContext."""
     # 1. Use the fixture to get a base context:
     match_context = base_match_context
     match_context.team1_name = "Team 1"
@@ -80,14 +83,15 @@ def test_report_match_events_clear_input(mocker, capsys, base_match_context):
 
     # 4. Assertions
     api_client_mock = match_context.api_client  # Get api_client_mock from the context
-    api_client_mock.clear_match_events.assert_called_once_with(123)  # Access from context
+    # Check clear_match_events was called
+    api_client_mock.clear_match_events.assert_called_once_with(123)
+    # Check that fetch_match_events_json was called with the right match ID
     api_client_mock.fetch_match_events_json.assert_called_once_with(123)
     api_client_mock.report_match_event.assert_not_called()
 
 
 def test_report_team_event(mocker, capsys, base_match_context):
     """Test for report_team_event function - basic goal reporting using MatchContext."""
-
     # 1. Use the fixture for the base MatchContext
     match_context = base_match_context
     match_context.team1_name = "Team 1"
@@ -98,8 +102,16 @@ def test_report_team_event(mocker, capsys, base_match_context):
 
     # Mock FogisDataParser methods
     mocker.patch.object(FogisDataParser, "calculate_scores")
-    mocker.patch.object(FogisDataParser, "get_player_id_by_team_jersey", return_value=100)
-    mocker.patch.object(FogisDataParser, "get_matchdeltagareid_by_team_jersey", return_value=1000)
+    # Mock player ID lookup
+    # Get player ID by jersey number
+    method_name = "get_player_id_by_team_jersey"
+    player_id_mock = mocker.patch.object(FogisDataParser, method_name)
+    player_id_mock.return_value = 100
+    # Mock match participant ID lookup
+    # Get match participant ID by jersey number
+    method_name = "get_matchdeltagareid_by_team_jersey"
+    participant_id_mock = mocker.patch.object(FogisDataParser, method_name)
+    participant_id_mock.return_value = 1000
 
     # Mock input for jersey number and minute
     mocker.patch("builtins.input", side_effect=['1', '1'])
@@ -116,13 +128,18 @@ def test_report_team_event(mocker, capsys, base_match_context):
     mocker.patch("fogis_reporter._display_current_events_table")
 
     # Mock _get_event_details_from_input
-    event_details = (1, {"name": "Goal", "goal": True}, 6, "Goal", True, [{"spelareid": 100, "trojnummer": 1, "matchdeltagareid": 1000}])
-    mocker.patch("fogis_reporter._get_event_details_from_input", return_value=event_details)
+    player_data = [{"spelareid": 100, "trojnummer": 1, "matchdeltagareid": 1000}]
+    event_details = (1, {"name": "Goal", "goal": True}, 6, "Goal", True, player_data)
+    # Mock the event details input function
+    event_details_mock = mocker.patch("fogis_reporter._get_event_details_from_input")
+    event_details_mock.return_value = event_details
 
     # 3. Import and call report_team_event
-    from fogis_reporter import report_team_event
+    # Import the function we're testing
+    from fogis_reporter import report_team_event  # noqa: E402
     report_team_event(match_context, 1)
 
     # 4. Assertions
-    api_client_mock = match_context.api_client # retrieve api_client_mock from the context
+    # Get the API client mock from the context
+    api_client_mock = match_context.api_client
     api_client_mock.report_match_event.assert_called_once()
