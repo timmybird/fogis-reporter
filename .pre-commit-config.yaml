@@ -1,11 +1,20 @@
+# Default language version for all hooks
+default_language_version:
+    python: python3
+
+# Global options for all hooks
+default_stages: [commit]
+
 repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.4.0
     hooks:
     -   id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
     -   id: end-of-file-fixer
     -   id: check-yaml
     -   id: check-added-large-files
+        args: ['--maxkb=500']
     -   id: check-json
     -   id: debug-statements
 
@@ -13,6 +22,7 @@ repos:
     rev: 6.1.0
     hooks:
     -   id: flake8
+        # Run only on changed files for faster execution
         additional_dependencies:
         -   flake8-docstrings
         -   flake8-import-order
@@ -25,7 +35,21 @@ repos:
     hooks:
     -   id: mypy
         exclude: ^tests/
+        # Use incremental mode for faster type checking
+        args: [--incremental, --cache-dir=.mypy_cache]
         additional_dependencies:
         -   types-requests==2.31.0.2
         -   types-tabulate==0.9.0.3
         -   types-beautifulsoup4==4.12.0.5
+
+-   repo: https://github.com/pycqa/isort
+    rev: 5.12.0
+    hooks:
+    -   id: isort
+        args: [--profile=black, --filter-files]
+
+-   repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: v0.0.292
+    hooks:
+    -   id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
