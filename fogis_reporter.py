@@ -1105,9 +1105,10 @@ def _verify_match_results(
                 fetched_scores.regular_time = Score(home=result['matchlag1mal'], away=result['matchlag2mal'])
 
         # Check if we have both halftime and fulltime scores
-        if fetched_scores.halftime is None or fetched_scores.regular_time is None:
+        missing_scores = fetched_scores.halftime is None or fetched_scores.regular_time is None
+        if missing_scores:  # This condition can be true if the API response is incomplete
             print("ERROR: Could not find both halftime and fulltime results in API response.")
-            return None  # This is reachable if the API response is incomplete
+            return None
 
         # --- Comparison (no change here) ---
         halftime_match = (fetched_scores.halftime.home == reported_scores.halftime.home and

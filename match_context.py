@@ -35,7 +35,7 @@ class MatchContext:
     Provides dynamic properties to access calculated scores.
     """
     api_client: FogisApiClient
-    selected_match: dict
+    selected_match: Dict[str, Any]
     team1_players_json: List[Dict[str, Any]]
     team2_players_json: List[Dict[str, Any]]
     match_events_json: List[Dict[str, Any]]
