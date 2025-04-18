@@ -245,16 +245,43 @@ pre-commit install
 pre-commit run --all-files
 ```
 
-### Future Enhancements (Roadmap)
+## Features
 
-*   Implement support for all documented match event types.
-*   Implement match result editing/deletion.
-*   Enhance error handling and logging.
-*   Improve input validation.
-*   Create a more user-friendly interface (even text-based menus).
-*   Explore voice input integration for live event reporting.
-*   Investigate and handle API rate limits.
-*   Add more comprehensive test coverage.
+### Smart Goal Reporting
+
+The application includes a streamlined goal reporting system that makes it faster and easier to record goals:
+
+* **Single Input Point**: Enter a jersey number directly to record a regular goal by that player
+* **Special Goal Types**: Use single-letter codes to access different goal types:
+  * `r` = Regular Goal (same as entering jersey number)
+  * `h` = Header Goal
+  * `c` = Corner Goal
+  * `f` = Free Kick Goal
+  * `o` = Own Goal
+  * `p` = Penalty Goal
+
+**Example Usage:**
+* Enter `10` to record a regular goal by player #10
+* Enter `p` then `7` to record a penalty goal by player #7
+* Enter `o` then `3` to record an own goal by player #3
+
+### Other Features
+
+* Interactive menu system for reporting various event types
+* Support for reporting cards, substitutions, and other match events
+* Match result reporting with verification
+* Event table display showing current match state
+
+## Future Enhancements (Roadmap)
+
+*   Implement support for all documented match event types
+*   Implement match result editing/deletion
+*   Enhance error handling and logging
+*   Improve input validation
+*   Create a more user-friendly interface (even text-based menus)
+*   Explore voice input integration for live event reporting
+*   Investigate and handle API rate limits
+*   Add more comprehensive test coverage
 *   ... (Add other potential features) ...
 
 ### Disclaimer
