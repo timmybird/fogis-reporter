@@ -1,6 +1,6 @@
 import json
 import os
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from fogis_api_client.fogis_api_client import (
     EVENT_TYPES,
@@ -739,8 +739,8 @@ def _report_goal_with_smart_input(match_context: MatchContext, team_number: int,
     extra_period_length = match_context.extra_period_length
     team_name = match_context.team1_name if team_number == 1 else match_context.team2_name
 
-    # Define goal type codes
-    goal_type_codes = {
+    # Define goal type codes with proper typing
+    goal_type_codes: Dict[str, Dict[str, Union[int, str]]] = {
         'r': {'id': 6, 'name': 'Regular Goal'},
         'h': {'id': 39, 'name': 'Header Goal'},
         'c': {'id': 28, 'name': 'Corner Goal'},
@@ -780,8 +780,8 @@ def _report_goal_with_smart_input(match_context: MatchContext, team_number: int,
         event_type_name = "Regular Goal"
     elif input_value.lower() in goal_type_codes:  # User entered a goal type code
         goal_type = goal_type_codes[input_value.lower()]
-        event_type_id = goal_type['id']
-        event_type_name = goal_type['name']
+        event_type_id = int(goal_type['id'])  # Explicit cast to int
+        event_type_name = str(goal_type['name'])  # Explicit cast to str
 
         # For special goal types, prompt for jersey number
         jersey_input = input(f"Enter jersey number for {event_type_name}: ")
