@@ -954,12 +954,26 @@ def _report_goal_with_smart_input(match_context: MatchContext, team_number: int,
     player_id = FogisDataParser.get_player_id_by_team_jersey(current_team_players_json, jersey_number_int)
     game_participant_id = FogisDataParser.get_matchdeltagareid_by_team_jersey(current_team_players_json, jersey_number_int)
 
+    # Get player name if available
+    player_name = "Unknown"
+    for player in current_team_players_json:
+        if player.get('trojnummer') == jersey_number_int:
+            # Try different possible name fields
+            if 'namn' in player:
+                player_name = player['namn']
+            elif 'fornamn' in player and 'efternamn' in player:
+                player_name = f"{player['fornamn']} {player['efternamn']}"
+            break
+
     if not player_id:
         print(f"Player with jersey number {jersey_number_int} not found for {team_name}.")
         return None  # Indicate failure
 
+    # Display confirmation of selected player
+    print(f"\nSelected player: {player_name} (#{jersey_number_int}) for {event_type_name}")
+
     # Get timestamp for the goal
-    minute_str = input("Minute when goal occurred (1-90, or '45+X' for stoppage time): ")
+    minute_str = input(f"Minute when goal by {player_name} (#{jersey_number_int}) occurred (1-90, or '45+X' for stoppage time): ")
     try:
         minute, period = _parse_minute_input(minute_str, num_periods, period_length, num_extra_periods,
                                              extra_period_length)
