@@ -799,11 +799,34 @@ def _report_substitution_event(match_context: MatchContext, team_number: int,
     game_participant_id_out = FogisDataParser.get_matchdeltagareid_by_team_jersey(current_team_players_json,
                                                                                   jersey_number_out_int)
 
+    # Get player names if available
+    player_name_in = "Unknown"
+    player_name_out = "Unknown"
+    team_name = match_context.team1_name if team_number == 1 else match_context.team2_name
+
+    for player in current_team_players_json:
+        # Check for player coming in
+        if player.get('trojnummer') == jersey_number_in_int:
+            if 'namn' in player:
+                player_name_in = player['namn']
+            elif 'fornamn' in player and 'efternamn' in player:
+                player_name_in = f"{player['fornamn']} {player['efternamn']}"
+
+        # Check for player going out
+        if player.get('trojnummer') == jersey_number_out_int:
+            if 'namn' in player:
+                player_name_out = player['namn']
+            elif 'fornamn' in player and 'efternamn' in player:
+                player_name_out = f"{player['fornamn']} {player['efternamn']}"
+
     if not player_id_in or not player_id_out:
         print("Invalid jersey number(s). Players not found.")
         return None  # Indicate failure
 
-    minute_str = input("Minute (1-90, or '45+X' for first-half stoppage): ")
+    # Display confirmation of selected players
+    print(f"\nSubstitution: {player_name_in} (#{jersey_number_in_int}) IN, {player_name_out} (#{jersey_number_out_int}) OUT for {team_name}")
+
+    minute_str = input("Minute when substitution occurred (1-90, or '45+X' for stoppage time): ")
     try:
         minute, period = _parse_minute_input(minute_str, num_periods, period_length, num_extra_periods,
                                              extra_period_length)
@@ -1048,11 +1071,26 @@ def _report_player_event(match_context: MatchContext, team_number: int, selected
     player_id = FogisDataParser.get_player_id_by_team_jersey(current_team_players_json, jersey_number_int)
     game_participant_id = FogisDataParser.get_matchdeltagareid_by_team_jersey(current_team_players_json, jersey_number_int)
 
+    # Get player name if available
+    player_name = "Unknown"
+    team_name = match_context.team1_name if team_number == 1 else match_context.team2_name
+    for player in current_team_players_json:
+        if player.get('trojnummer') == jersey_number_int:
+            # Try different possible name fields
+            if 'namn' in player:
+                player_name = player['namn']
+            elif 'fornamn' in player and 'efternamn' in player:
+                player_name = f"{player['fornamn']} {player['efternamn']}"
+            break
+
     if not player_id:
-        print(f"Player with jersey number {jersey_number} not found for Team {team_number}.")
+        print(f"Player with jersey number {jersey_number} not found for {team_name}.")
         return None  # Indicate failure
 
-    minute_str = input("Minute (1-90, or '45+X' for first-half stoppage): ")
+    # Display confirmation of selected player
+    print(f"\nSelected player: {player_name} (#{jersey_number_int}) for {event_type_name}")
+
+    minute_str = input(f"Minute when {event_type_name} for {player_name} (#{jersey_number_int}) occurred (1-90, or '45+X' for stoppage time): ")
     try:
         minute, period = _parse_minute_input(minute_str, num_periods, period_length, num_extra_periods,
                                              extra_period_length)
