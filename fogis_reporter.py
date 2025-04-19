@@ -2,21 +2,25 @@ import json
 import os
 from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
+from fogis_api_client.fogis_api_client import (
+    EVENT_TYPES,
+    FogisApiClient,
+    FogisLoginError,
+)
+
 # Import safe API wrapper
 from api_utils import safe_fetch_json_list
+
 # Import emoji dictionaries
 from emoji_config import EVENT_EMOJIS, MENU_EMOJIS
-
-from fogis_api_client.fogis_api_client import FogisApiClient, EVENT_TYPES, FogisLoginError
-
 from fogis_data_parser import FogisDataParser
-from match_context import MatchContext, Scores, Score
+from match_context import MatchContext, Score, Scores
 from match_event_table_formatter import MatchEventTableFormatter
 
 
 def select_match_interactively(matches):
     """
-    Interactively allows the user to select a match from a list.
+    Interactively allows the user to select a match from a list with enhanced formatting.
 
     Args:
         matches (list): A list of match dictionaries.
@@ -28,22 +32,33 @@ def select_match_interactively(matches):
         print("No matches available to select.")
         return None
 
+    # Create a more visually appealing header
+    print("\n" + "=" * 60)
+    print("  MATCH SELECTION")
+    print("=" * 60)
+
     print("\nAvailable Matches:")
     for index, match in enumerate(matches):
-        print(f"{index + 1}: {match['label']}")
-    print("Enter empty string to exit")
+        # Extract date and time for better formatting
+        match_info = match['label']
+        print(f"  {index + 1}: {match_info}")
+
+    print("\n  Enter empty string to exit")
+    print("-" * 60)
 
     while True:
-        match_choice = input("Select match number to report events for: ")
+        match_choice = input("Select match number: ")
         if match_choice == "":
             print("Exiting...")
             return None
         try:
             match_index = int(match_choice) - 1
             if 0 <= match_index < len(matches):
-                return matches[match_index]
+                selected_match = matches[match_index]
+                print(f"\nSelected: {selected_match['label']}")
+                return selected_match
             else:
-                print("Invalid match number selected.")
+                print("Invalid match number selected. Please try again.")
         except ValueError:
             print("Invalid input. Please enter a number or empty string to exit.")
 
@@ -90,14 +105,25 @@ def display_main_menu(match_context: MatchContext):
     Displays the main menu with different event categories.
     """
     while True:
-        print(f"\n--- Main Menu for {match_context.team1_name} vs {match_context.team2_name} ---")
-        print(f"1: {MENU_EMOJIS['report_events']} Report Match Events (goals, cards, etc.)")
-        print(f"2: {MENU_EMOJIS['control_events']} Report Control Events (period end, game end)")
-        print(f"3: {MENU_EMOJIS['staff_events']} Report Staff Member Events")
-        print(f"4: {MENU_EMOJIS['report_results']} Report Match Results")
-        print(f"{MENU_EMOJIS['back']} Enter empty string to go back to match selection")
+        # Get current scores for display
+        scores = match_context.scores
 
-        choice = input("Select option: ")
+        # Create a more visually appealing header with match info and current score
+        print("\n" + "=" * 60)
+        print(f"  MATCH: {match_context.team1_name} vs {match_context.team2_name}")
+        print(f"  CURRENT SCORE: {match_context.team1_name} {scores.regular_time.home} - {scores.regular_time.away} {match_context.team2_name}")
+        print("=" * 60)
+
+        # Main menu options with better spacing and organization
+        print("\nMAIN MENU - Select an option:")
+        print(f"  1: {MENU_EMOJIS['report_events']} Report Match Events (goals, cards, substitutions)")
+        print(f"  2: {MENU_EMOJIS['control_events']} Report Time Events (period start/end, game end)")
+        print(f"  3: {MENU_EMOJIS['staff_events']} Report Staff Events (coach cards, officials)")
+        print(f"  4: {MENU_EMOJIS['report_results']} Report Final Match Results")
+        print(f"\n  {MENU_EMOJIS['back']} Enter empty string to return to match selection")
+        print("-" * 60)
+
+        choice = input("Select option [1-4]: ")
 
         if choice == "":
             return  # Go back to match selection
@@ -119,13 +145,25 @@ def report_match_events_menu(match_context: MatchContext):
     """
 
     while True:
-        print(f"\n--- Match Events Menu ---")
-        print(f"1: {MENU_EMOJIS['team1_events']} Report event for {match_context.team1_name}")
-        print(f"2: {MENU_EMOJIS['team2_events']} Report event for {match_context.team2_name}")
-        print(f"3: {MENU_EMOJIS['clear_events']} Clear all events")
-        print(f"{MENU_EMOJIS['back']} Enter empty string to go back to main menu")
+        # Get current scores for display
+        scores = match_context.scores
 
-        choice = input("Select option: ")
+        # Create a more visually appealing header with match info and current score
+        print("\n" + "=" * 60)
+        print(f"  MATCH EVENTS - {match_context.team1_name} vs {match_context.team2_name}")
+        print(f"  CURRENT SCORE: {match_context.team1_name} {scores.regular_time.home} - {scores.regular_time.away} {match_context.team2_name}")
+        print("=" * 60)
+
+        # Team selection with better formatting
+        print("\nSelect a team to report events for:")
+        print(f"  1: {MENU_EMOJIS['team1_events']} {match_context.team1_name} (Home Team)")
+        print(f"  2: {MENU_EMOJIS['team2_events']} {match_context.team2_name} (Away Team)")
+        print("\nOther options:")
+        print(f"  3: {MENU_EMOJIS['clear_events']} Clear all recorded events")
+        print(f"\n  {MENU_EMOJIS['back']} Enter empty string to return to main menu")
+        print("-" * 60)
+
+        choice = input("Select option [1-3]: ")
 
         if choice == "":
             return  # Go back to main menu
@@ -156,36 +194,58 @@ def report_team_event(match_context: MatchContext, team_number: int):
     team1_score = scores.regular_time.home
     team2_score = scores.regular_time.away
 
-    try:
-        # Use existing event selection logic
-        _, selected_event_type, event_type_id, event_type_name, is_goal_event, current_team_players_json = _get_event_details_from_input(
-            str(team_number), team1_players_json, team2_players_json
-        )
-        if not selected_event_type:  # Input was invalid
-            return
+    # Get the current team's players
+    current_team_players_json = team1_players_json if team_number == 1 else team2_players_json
+    team_name = match_context.team1_name if team_number == 1 else match_context.team2_name
 
-        if selected_event_type["name"] == "Substitution":
-            new_events = _report_substitution_event(match_context, team_number,
-                                                current_team_players_json,
-                                                team1_score, team2_score)
-            if new_events is not None:
-                match_context.match_events_json = new_events
-        elif selected_event_type["name"] == "Team Official Action":
-            new_events = _report_team_official_action_event(match_context)
-            if new_events is not None:
-                match_context.match_events_json = new_events
-        else:
-            new_events = _report_player_event(match_context, team_number, selected_event_type,
-                                           current_team_players_json, team1_score,
-                                           team2_score)
-            if new_events is not None:
-                match_context.match_events_json = new_events
+    # Display event type options
+    print(f"\n--- Event Types for {team_name} ---")
+    print("1: ⚽ Goal (NEW: Enter jersey number or goal type code)")
+    print("2: 🟨 Card (Yellow/Red)")
+    print("3: 🔄 Substitution")
+    print("4: 👨‍💼 Team Official Action")
+    print(f"{MENU_EMOJIS['back']} Enter empty string to go back")
 
-        if match_context.match_events_json is not None:  # Event reporting was successful
-            _display_current_events_table(match_context)  # Display table after each event
+    event_category = input("Select event category: ")
 
-    except ValueError as e:
-        print(e)  # Print specific error message from input parsing or event reporting
+    if event_category == "":
+        return  # Go back
+    elif event_category == "1":  # Goal events - use smart input detection
+        new_events = _report_goal_with_smart_input(match_context, team_number, current_team_players_json, team1_score, team2_score)
+        if new_events is not None:
+            match_context.match_events_json = new_events
+            _display_current_events_table(match_context)  # Display table after goal reporting
+    else:
+        # Use existing event selection logic for non-goal events
+        try:
+            _, selected_event_type, event_type_id, event_type_name, is_goal_event, current_team_players_json = _get_event_details_from_input(
+                str(team_number), team1_players_json, team2_players_json, event_category
+            )
+            if not selected_event_type:  # Input was invalid
+                return
+
+            if selected_event_type["name"] == "Substitution":
+                new_events = _report_substitution_event(match_context, team_number,
+                                                    current_team_players_json,
+                                                    team1_score, team2_score)
+                if new_events is not None:
+                    match_context.match_events_json = new_events
+            elif selected_event_type["name"] == "Team Official Action":
+                new_events = _report_team_official_action_event(match_context)
+                if new_events is not None:
+                    match_context.match_events_json = new_events
+            else:
+                new_events = _report_player_event(match_context, team_number, selected_event_type,
+                                               current_team_players_json, team1_score,
+                                               team2_score)
+                if new_events is not None:
+                    match_context.match_events_json = new_events
+
+                if match_context.match_events_json is not None:  # Event reporting was successful
+                    _display_current_events_table(match_context)  # Display table after each event
+
+        except ValueError as e:
+            print(e)  # Print specific error message from input parsing or event reporting
 
 
 def _determine_event_type_from_timestamp(timestamp: int, match_context: MatchContext) -> Tuple[int, str, int]:
@@ -380,11 +440,23 @@ def report_staff_events_menu(match_context: MatchContext):
     Menu for reporting staff member events
     """
     while True:
-        print(f"\n--- Staff Member Events Menu ---")
-        print(f"1: {EVENT_EMOJIS['Coach Warning']} Report Team Official Action")
-        print(f"{MENU_EMOJIS['back']} Enter empty string to go back to main menu")
+        # Get current scores for display
+        scores = match_context.scores
 
-        choice = input("Select option: ")
+        # Create a more visually appealing header with match info
+        print("\n" + "=" * 60)
+        print(f"  STAFF EVENTS - {match_context.team1_name} vs {match_context.team2_name}")
+        print(f"  CURRENT SCORE: {match_context.team1_name} {scores.regular_time.home} - {scores.regular_time.away} {match_context.team2_name}")
+        print("=" * 60)
+
+        # Staff event options with better formatting
+        print("\nSelect a staff event to report:")
+        print(f"  1: {EVENT_EMOJIS['Coach Warning']} Team Official Action (warnings, cards)")
+        print(f"  2: {EVENT_EMOJIS['Medical Staff Intervention']} Medical Staff Intervention")
+        print(f"\n  {MENU_EMOJIS['back']} Enter empty string to return to main menu")
+        print("-" * 60)
+
+        choice = input("Select option [1-2]: ")
 
         if choice == "":
             return  # Go back to main menu
@@ -394,6 +466,9 @@ def report_staff_events_menu(match_context: MatchContext):
                 match_context.match_events_json = new_events
             if match_context.match_events_json is not None:
                 _display_current_events_table(match_context)
+        elif choice == "2":
+            print("\nMedical Staff Intervention reporting is not yet implemented.")
+            print("This feature will be available in a future update.")
         else:
             print("Invalid option. Please try again.")
 
@@ -403,11 +478,22 @@ def report_results_menu(match_context: MatchContext):
     Menu for reporting match results
     """
     while True:
-        print("\n--- Match Results Menu ---")
-        print(f"1: {MENU_EMOJIS['report_results']} Report match results")
-        print(f"{MENU_EMOJIS['back']} Enter empty string to go back to main menu")
+        # Get current scores for display
+        scores = match_context.scores
 
-        choice = input("Select option: ")
+        # Create a more visually appealing header with match info
+        print("\n" + "=" * 60)
+        print(f"  MATCH RESULTS - {match_context.team1_name} vs {match_context.team2_name}")
+        print(f"  CURRENT SCORE: {match_context.team1_name} {scores.regular_time.home} - {scores.regular_time.away} {match_context.team2_name}")
+        print("=" * 60)
+
+        # Results options with better formatting
+        print("\nMatch result options:")
+        print(f"  1: {MENU_EMOJIS['report_results']} Report final match results")
+        print(f"\n  {MENU_EMOJIS['back']} Enter empty string to return to main menu")
+        print("-" * 60)
+
+        choice = input("Select option [1]: ")
 
         if choice == "":
             return  # Go back to main menu
@@ -740,7 +826,7 @@ def _report_substitution_event(match_context: MatchContext, team_number: int,
     report_response = api_client.report_match_event(event_data)
     if report_response:
         print("\nMatch Event Report Response (Substitution):")
-        print(f"Event Type: Substitution")
+        print("Event Type: Substitution")
         print(json.dumps(report_response, indent=2, ensure_ascii=False))
         # Use safe API wrapper to ensure match_events_json is always a list of dictionaries
         match_events_json = safe_fetch_json_list(api_client.fetch_match_events_json, match_id)
@@ -781,7 +867,7 @@ def _report_team_official_action_event(match_context: MatchContext) -> Optional[
     report_response = api_client.report_team_official_action(action_data)
     if report_response:
         print("\nTeam Official Action Report Response:")
-        print(f"Event Type: Team Official Action")
+        print("Event Type: Team Official Action")
         print(json.dumps(report_response, indent=2, ensure_ascii=False))
         # Use safe API wrapper to ensure match_events_json is always a list of dictionaries
         match_events_json = safe_fetch_json_list(api_client.fetch_match_events_json, match_id)
@@ -789,6 +875,136 @@ def _report_team_official_action_event(match_context: MatchContext) -> Optional[
     else:
         print("\nFailed to report team official action.")
         return None  # Indicate failure
+
+
+def _report_goal_with_smart_input(match_context: MatchContext, team_number: int,
+                            current_team_players_json: List[Dict[str, Any]],
+                            team1_score: int, team2_score: int) -> Optional[List[Dict[str, Any]]]:
+    """Reports a goal event using smart input detection.
+
+    This function implements the streamlined goal reporting system where:
+    - If user enters a number → Record as regular goal by that player
+    - If user enters a letter → Prompt for jersey number for that specific goal type
+    """
+    api_client = match_context.api_client
+    match_id = match_context.match_id
+    team1_id = match_context.team1_id
+    team2_id = match_context.team2_id
+    num_periods = match_context.num_periods
+    period_length = match_context.period_length
+    num_extra_periods = match_context.num_extra_periods
+    extra_period_length = match_context.extra_period_length
+    team_name = match_context.team1_name if team_number == 1 else match_context.team2_name
+
+    # Define goal type codes with proper typing
+    goal_type_codes: Dict[str, Dict[str, Union[int, str]]] = {
+        'r': {'id': 6, 'name': 'Regular Goal'},
+        'h': {'id': 39, 'name': 'Header Goal'},
+        'c': {'id': 28, 'name': 'Corner Goal'},
+        'f': {'id': 29, 'name': 'Free Kick Goal'},
+        'o': {'id': 15, 'name': 'Own Goal'},
+        'p': {'id': 14, 'name': 'Penalty Goal'}
+    }
+
+    # Display help text for the new input method
+    print("\n" + "=" * 60)
+    print(f"  GOAL REPORTING - {team_name}")
+    print("=" * 60)
+    print("\nEnter jersey number for a regular goal, or one of these codes for special goal types:")
+    print("  r = Regular Goal (same as entering jersey number)")
+    print("  h = Header Goal")
+    print("  c = Corner Goal")
+    print("  f = Free Kick Goal")
+    print("  o = Own Goal")
+    print("  p = Penalty Goal")
+    print("\nExample: '10' for regular goal by player #10, or 'p' for penalty goal")
+    print("-" * 60)
+
+    # Get user input
+    input_value = input("Enter jersey number or goal type code: ")
+
+    if input_value == "":
+        return None  # User cancelled
+
+    # Determine if input is a jersey number or a goal type code
+    event_type_id = None
+    event_type_name = None
+    jersey_number_int = None
+
+    if input_value.isdigit():  # User entered a jersey number - regular goal
+        jersey_number_int = int(input_value)
+        event_type_id = 6  # Regular Goal
+        event_type_name = "Regular Goal"
+    elif input_value.lower() in goal_type_codes:  # User entered a goal type code
+        goal_type = goal_type_codes[input_value.lower()]
+        event_type_id = int(goal_type['id'])  # Explicit cast to int
+        event_type_name = str(goal_type['name'])  # Explicit cast to str
+
+        # For special goal types, prompt for jersey number
+        jersey_input = input(f"Enter jersey number for {event_type_name}: ")
+        if not jersey_input.isdigit():
+            print("Jersey number must be an integer.")
+            return None
+        jersey_number_int = int(jersey_input)
+    else:
+        print(f"Invalid input: '{input_value}'. Please enter a jersey number or a valid goal type code.")
+        return None
+
+    # Validate jersey number
+    player_id = FogisDataParser.get_player_id_by_team_jersey(current_team_players_json, jersey_number_int)
+    game_participant_id = FogisDataParser.get_matchdeltagareid_by_team_jersey(current_team_players_json, jersey_number_int)
+
+    if not player_id:
+        print(f"Player with jersey number {jersey_number_int} not found for {team_name}.")
+        return None  # Indicate failure
+
+    # Get timestamp for the goal
+    minute_str = input("Minute when goal occurred (1-90, or '45+X' for stoppage time): ")
+    try:
+        minute, period = _parse_minute_input(minute_str, num_periods, period_length, num_extra_periods,
+                                             extra_period_length)
+    except ValueError as e:
+        print(e)
+        return None  # Indicate failure
+
+    # Update score
+    game_team_id = team1_id if team_number == 1 else team2_id
+    if team_number == 1:
+        team1_score += 1
+    elif team_number == 2:
+        team2_score += 1
+
+    # Create event data
+    event_data = {"matchhandelseid": 0, "matchid": match_id, "period": period,
+                  "matchminut": minute,
+                  "sekund": 0, "matchhandelsetypid": event_type_id,
+                  "matchlagid": game_team_id,
+                  "spelareid": int(player_id), "spelareid2": 0,
+                  "planpositionx": "-1", "planpositiony": "-1",
+                  "matchdeltagareid": int(game_participant_id) if game_participant_id else 0,
+                  "matchdeltagareid2": 0, "fotbollstypId": 1,
+                  "relateradTillMatchhandelseID": 0}
+
+    if team_number == 1:
+        event_data["hemmamal"] = team1_score
+        event_data["bortamal"] = team2_score
+    elif team_number == 2:
+        event_data["hemmamal"] = team1_score
+        event_data["bortamal"] = team2_score
+
+    # Report the event
+    try:
+        api_response = api_client.report_match_event(event_data)
+        if api_response is None:
+            print(f"Error reporting {event_type_name} for player #{jersey_number_int}.")
+            return None
+
+        print(f"{event_type_name} reported for player #{jersey_number_int} at minute {minute}.")
+        match_events_json = safe_fetch_json_list(api_client.fetch_match_events_json, match_id)
+        return match_events_json
+    except Exception as e:
+        print(f"Error reporting goal: {e}")
+        return None
 
 
 def _report_player_event(match_context: MatchContext, team_number: int, selected_event_type: Dict[str, Any],
@@ -879,7 +1095,7 @@ def _handle_clear_events(match_context: MatchContext) -> List[Dict[str, Any]]:
 
 
 def _display_current_events_table(match_context: MatchContext):
-    """Displays the current match events table."""
+    """Displays the current match events table with enhanced formatting."""
 
     scores: Scores = FogisDataParser.calculate_scores(match_context)
     team1_score = scores.regular_time.home
@@ -888,18 +1104,25 @@ def _display_current_events_table(match_context: MatchContext):
     halftime_score_team2 = scores.halftime.away
     match_events_json = match_context.match_events_json
 
+    # Create a more visually appealing header
+    print("\n" + "=" * 60)
+    print(f"  MATCH EVENTS SUMMARY - {match_context.team1_name} vs {match_context.team2_name}")
+    print(f"  CURRENT SCORE: {match_context.team1_name} {team1_score} - {team2_score} {match_context.team2_name}")
+    if halftime_score_team1 is not None and halftime_score_team2 is not None:
+        print(f"  HALFTIME SCORE: {match_context.team1_name} {halftime_score_team1} - {halftime_score_team2} {match_context.team2_name}")
+    print("=" * 60)
+
     formatter = MatchEventTableFormatter(EVENT_TYPES, match_context.team1_name, match_context.team2_name,
                                          match_context.team1_id, match_context.team2_id)
     table_string = formatter.format_structured_table(
         match_events_json, match_context.team1_players_json, match_context.team2_players_json,
         team1_score, team2_score, halftime_score_team1, halftime_score_team2
-        # Halftime scores not relevant for event table display
     )
-    print("\n--- Current Match Events ---")
     print(table_string)
+    print("-" * 60)
 
 
-def _get_event_details_from_input(team_number_input, team1_players_json, team2_players_json):
+def _get_event_details_from_input(team_number_input, team1_players_json, team2_players_json, event_category=None):
     """Gets event details from user input, including team number, event type, etc."""
     if team_number_input.lower() == 'done' or team_number_input.lower() == 'clear':
         return None, None, None, None, None, None  # Signal to caller that input is 'done' or 'clear'
@@ -910,11 +1133,49 @@ def _get_event_details_from_input(team_number_input, team1_players_json, team2_p
             print("Invalid team number. Please enter 1 or 2.")
             return None, None, None, None, None, None  # Indicate invalid input
 
-        print("\nSelect Event Type:")
-        for event_type_id, event_type in EVENT_TYPES.items():  # Iterate through EVENT_TYPES.items()
-            if not event_type.get("control_event") and event_type_id is not None:  # Skip control events and "None" key
-                print(f"{event_type_id}: {event_type['name']}")  # Use event_type_id (numerical key)
+        # If event_category is provided, use it to filter event types
+        if event_category:
+            if event_category == "2":  # Cards
+                print("\nSelect Card Type:")
+                for event_type_id, event_type in EVENT_TYPES.items():
+                    if not event_type.get("control_event") and event_type_id is not None and "Card" in event_type['name']:
+                        print(f"{event_type_id}: {event_type['name']}")
+            elif event_category == "3":  # Substitution
+                print("\nSubstitution Selected")
+                event_choice_str = "17"  # Hardcode to Substitution event type
+                event_choice = int(event_choice_str)
+                selected_event_type = EVENT_TYPES[event_choice]
+                event_type_id = event_choice
+                event_type_name = selected_event_type["name"]
+                is_goal_event = selected_event_type.get("goal", False)
+                current_team_players_json = team1_players_json if team_number == 1 else team2_players_json
+                return team_number, selected_event_type, event_type_id, event_type_name, is_goal_event, current_team_players_json
+            elif event_category == "4":  # Team Official Action
+                # Handle Team Official Action
+                event_choice_str = None
+                for event_id, event_type in EVENT_TYPES.items():
+                    if event_type.get("name") == "Team Official Action":
+                        event_choice_str = str(event_id)
+                        break
+                if event_choice_str:
+                    event_choice = int(event_choice_str)
+                    selected_event_type = EVENT_TYPES[event_choice]
+                    event_type_id = event_choice
+                    event_type_name = selected_event_type["name"]
+                    is_goal_event = selected_event_type.get("goal", False)
+                    current_team_players_json = team1_players_json if team_number == 1 else team2_players_json
+                    return team_number, selected_event_type, event_type_id, event_type_name, is_goal_event, current_team_players_json
+                else:
+                    print("Team Official Action event type not found.")
+                    return None, None, None, None, None, None
+        else:
+            # Original behavior - show all event types
+            print("\nSelect Event Type:")
+            for event_type_id, event_type in EVENT_TYPES.items():
+                if not event_type.get("control_event") and event_type_id is not None:
+                    print(f"{event_type_id}: {event_type['name']}")
 
+        # For card events or when no category is specified
         event_choice_str = input("Enter event type number: ")  # Prompt for "event type number" (numerical ID)
         if event_choice_str.isdigit():
             event_choice = int(event_choice_str)
@@ -987,7 +1248,7 @@ def _report_match_results_interactively(match_context: MatchContext):
 
     api_client = match_context.api_client
     try:
-        result_response = api_client.report_match_result(result_data)  # Report results to API
+        api_client.report_match_result(result_data)  # Report results to API
         # result_response is expected to be None or null, so we don't check it directly
 
         fetched_scores = _verify_match_results(match_context, reported_scores)  # Verify and get fetched scores
@@ -1134,33 +1395,45 @@ def _verify_match_results(
 
 def main():
     """Main function to orchestrate match reporting process."""
+    # Display welcome banner
+    print("\n" + "=" * 60)
+    print("  FOGIS MATCH REPORTER")
+    print("  A tool for reporting match events to the FOGIS system")
+    print("=" * 60)
+
+    # Check for credentials
     fogis_username = os.environ.get('FOGIS_USERNAME')
     fogis_password = os.environ.get('FOGIS_PASSWORD')
 
     if not fogis_username or not fogis_password:
-        print("Error: FOGIS_USERNAME and FOGIS_PASSWORD environment variables must be set.")
+        print("\nError: FOGIS_USERNAME and FOGIS_PASSWORD environment variables must be set.")
+        print("Please set these variables and try again.")
         return
 
+    print("\nAttempting to log in to FOGIS...")
     api_client = FogisApiClient(fogis_username, fogis_password)
     try:
         if not api_client.login():
-            print("Login failed.")
+            print("Login failed. Please check your credentials and try again.")
             return
-        print("Login successful!")
+        print("Login successful! Welcome to the FOGIS Match Reporter.")
 
     except FogisLoginError as e:
         print(f"Login Error: {e}")
+        print("Please check your credentials and try again.")
         return
 
     while True:  # Main loop to allow returning to match selection
+        print("\nFetching available matches...")
         matches = api_client.fetch_matches_list_json()
         if not matches:
-            print("Could not fetch match list.")
+            print("Could not fetch match list. The API may be unavailable or there might be no matches to report.")
             return
 
+        print(f"Found {len(matches)} matches available for reporting.")
         selected_match = select_match_interactively(matches)  # Use new function for match selection
         if not selected_match:
-            print("Exiting program.")
+            print("\nThank you for using FOGIS Match Reporter. Goodbye!")
             return  # Exit if no match selected or user chose to exit
 
         match_id = selected_match['matchid']
@@ -1268,24 +1541,15 @@ def main():
                 "\nFailed to fetch team sheets or match events for one or more teams due to API errors.")  # More accurate error message
             continue  # Go back to match selection
 
-        # Ask if user wants to select another match
-        another = input("\nSelect another match? (y/n): ")
+        # Ask if user wants to select another match with better formatting
+        print("\n" + "-" * 60)
+        print("  Would you like to select another match?")
+        print("-" * 60)
+        another = input("Select another match? (y/n): ")
         if another.lower() != 'y':
-            print("Exiting program.")
+            print("\nThank you for using FOGIS Match Reporter. Goodbye!")
             break
 
-        more_results = {"matchresultatListaJSON": [
-            {"matchid": 6180498, "matchresultattypid": 1, "matchlag1mal": 1, "matchlag2mal": 1, "wo": False,
-             "ow": False, "ww": False},  # Final result
-            {"matchid": 6180498, "matchresultattypid": 2, "matchlag1mal": 1, "matchlag2mal": 1, "wo": False,
-             "ow": False, "ww": False},  # Halftime
-            {"matchid": 6180498, "matchresultattypid": 3, "matchlag1mal": -1, "matchlag2mal": -1, "wo": False,
-             "ow": False, "ww": False},  # Full time
-            {"matchid": 6180498, "matchresultattypid": 4, "matchlag1mal": -1, "matchlag2mal": -1, "wo": False,
-             "ow": False, "ww": False},  # Extra time
-            {"matchid": 6180498, "matchresultattypid": 5, "matchlag1mal": -1, "matchlag2mal": -1, "wo": False,
-             "ow": False, "ww": False}  # Penalty shootout
-        ]}
 
 
 if __name__ == "__main__":

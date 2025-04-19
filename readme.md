@@ -287,16 +287,16 @@ The application includes intelligent timestamp-based detection for time control 
 * Match result reporting with verification
 * Event table display showing current match state
 
-### Future Enhancements (Roadmap)
+## Future Enhancements (Roadmap)
 
-*   Implement support for all documented match event types.
-*   Implement match result editing/deletion.
-*   Enhance error handling and logging.
-*   Improve input validation.
-*   Create a more user-friendly interface (even text-based menus).
-*   Explore voice input integration for live event reporting.
-*   Investigate and handle API rate limits.
-*   Add more comprehensive test coverage.
+*   Implement support for all documented match event types
+*   Implement match result editing/deletion
+*   Enhance error handling and logging
+*   Improve input validation
+*   Create a more user-friendly interface (even text-based menus)
+*   Explore voice input integration for live event reporting
+*   Investigate and handle API rate limits
+*   Add more comprehensive test coverage
 *   ... (Add other potential features) ...
 
 ### Disclaimer
