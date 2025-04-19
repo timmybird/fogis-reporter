@@ -18,6 +18,15 @@ class FogisDataParser:
         """Finds the spelareid of a player by team and jersey number from JSON data."""
         if team_players_data:
             for player in team_players_data:
+                # Check if the required keys exist in the player data
+                if 'trojnummer' not in player:
+                    print(f"Warning: Player data missing 'trojnummer' key. Available keys: {list(player.keys())}")
+                    continue
+                if 'spelareid' not in player:
+                    print(f"Warning: Player data missing 'spelareid' key. Available keys: {list(player.keys())}")
+                    continue
+
+                # Now safely access the keys
                 if player['trojnummer'] == int(jersey_number):
                     return int(player['spelareid'])
         return None
@@ -30,6 +39,15 @@ class FogisDataParser:
         # Shorter docstring to avoid line length issues
         if team_players_data:
             for player in team_players_data:
+                # Check if the required keys exist in the player data
+                if 'trojnummer' not in player:
+                    print(f"Warning: Player data missing 'trojnummer' key. Available keys: {list(player.keys())}")
+                    continue
+                if 'matchdeltagareid' not in player:
+                    print(f"Warning: Player data missing 'matchdeltagareid' key. Available keys: {list(player.keys())}")
+                    continue
+
+                # Now safely access the keys
                 if player['trojnummer'] == int(jersey_number):
                     return int(player['matchdeltagareid'])
         return None
