@@ -265,6 +265,21 @@ The application includes a streamlined goal reporting system that makes it faste
 * Enter `p` then `7` to record a penalty goal by player #7
 * Enter `o` then `3` to record an own goal by player #3
 
+### Smart Time Control Event Detection
+
+The application includes intelligent timestamp-based detection for time control events:
+
+* **Automatic Event Type Detection**: Simply enter a timestamp (minute) and the system automatically determines if it's a period start, period end, or game end based on the match structure
+* **Match Structure Awareness**: The system knows the number of periods, period lengths, and extra time settings for the match
+* **Visual Timeline**: Displays all valid timestamps for the match with clear indications of what each timestamp represents
+* **Stoppage Time Support**: Handles stoppage time notation (e.g., 45+2, 90+3)
+
+**Example Usage:**
+* Enter `45` to record the end of the first half
+* Enter `90` to record the end of the match
+* Enter `1` to record the start of the first period
+* Enter `46` to record the start of the second half
+
 ### Other Features
 
 * Interactive menu system for reporting various event types

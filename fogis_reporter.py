@@ -1,6 +1,6 @@
 import json
 import os
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
 from fogis_api_client.fogis_api_client import (
     EVENT_TYPES,
@@ -248,9 +248,106 @@ def report_team_event(match_context: MatchContext, team_number: int):
             print(e)  # Print specific error message from input parsing or event reporting
 
 
+def _determine_event_type_from_timestamp(timestamp: int, match_context: MatchContext) -> Tuple[int, str, int]:
+    """
+    Automatically determines the appropriate event type based on the timestamp and match structure.
+
+    Args:
+        timestamp: The match minute (e.g., 1, 45, 46, 90)
+        match_context: The match context containing match structure information
+
+    Returns:
+        A tuple containing (event_type_id, event_type_name, period)
+
+    Raises:
+        ValueError: If the timestamp is invalid or doesn't map to a specific event
+    """
+    num_periods = match_context.num_periods
+    period_length = match_context.period_length
+    num_extra_periods = match_context.num_extra_periods
+    extra_period_length = match_context.extra_period_length
+
+    # Calculate period boundaries
+    period_boundaries = []
+    for i in range(1, num_periods + 1):
+        start_minute = 1 + (i - 1) * period_length
+        end_minute = i * period_length
+        period_boundaries.append((start_minute, end_minute, i))
+
+    # Add extra time periods if applicable
+    if num_extra_periods > 0:
+        regular_time_end = num_periods * period_length
+        for i in range(1, num_extra_periods + 1):
+            start_minute = regular_time_end + 1 + (i - 1) * extra_period_length
+            end_minute = regular_time_end + i * extra_period_length
+            period = num_periods + i
+            period_boundaries.append((start_minute, end_minute, period))
+
+    # Determine event type based on timestamp
+    for start, end, period in period_boundaries:
+        if timestamp == start:
+            # Period Start
+            return 31, "Period Start", period
+        elif timestamp == end or (timestamp > end and '+' in str(timestamp)):
+            # Period End
+            if period == num_periods and num_extra_periods == 0:
+                # Last period of regular time with no extra time - both Period End and Game End
+                return 23, "Game End", period
+            elif period == num_periods + num_extra_periods and num_extra_periods > 0:
+                # Last period of extra time - both Period End and Game End
+                return 23, "Game End", period
+            else:
+                # Regular period end
+                return 32, "Period End", period
+
+    # If we get here, the timestamp doesn't map to a specific event
+    raise ValueError(f"Timestamp {timestamp} doesn't correspond to a period start or end.")
+
+
+def _report_smart_control_event(match_context: MatchContext, event_type_id: int, event_type_name: str, period: int, time_input: str):
+    """Reports a control event based on smart timestamp detection."""
+    match_id = match_context.match_id
+    team1_score = match_context.scores.regular_time.home
+    team2_score = match_context.scores.regular_time.away
+
+    # Parse the time input to get the actual minute
+    try:
+        match_minute, period_calculated = _parse_minute_input(time_input, match_context.num_periods,
+                                                match_context.period_length, match_context.num_extra_periods,
+                                                match_context.extra_period_length)
+
+        # Create the control event JSON in the correct API format
+        control_event = {
+            "matchhandelseid": 0,
+            "matchid": match_id,
+            "period": period,
+            "matchminut": match_minute,
+            "sekund": 0,
+            "matchhandelsetypid": event_type_id,
+            "matchlagid": 0,
+            "spelareid": 0,
+            "spelareid2": 0,
+            "planpositionx": "-1",
+            "planpositiony": "-1",
+            "matchdeltagareid": 0,
+            "matchdeltagareid2": 0,
+            "fotbollstypId": 1,
+            "relateradTillMatchhandelseID": 0,
+            "hemmamal": team1_score,
+            "bortamal": team2_score
+        }
+
+        # Handle automatic period start and period end logic AND API reporting
+        _add_control_event_with_implicit_events(control_event, match_context)
+
+        print(f"{event_type_name} reported at minute {match_minute}, period {period}.")
+    except ValueError as e:
+        print(f"Error: {e}")
+
+
 def report_control_events_menu(match_context: MatchContext):
     """
-    Menu for reporting control events (period end, game end)
+    Menu for reporting control events (period end, game end) with smart timestamp detection
     """
     while True:
         # Get current scores for display
@@ -262,22 +359,80 @@ def report_control_events_menu(match_context: MatchContext):
         print(f"  CURRENT SCORE: {match_context.team1_name} {scores.regular_time.home} - {scores.regular_time.away} {match_context.team2_name}")
         print("=" * 60)
 
-        # Time control options with better formatting
-        print("\nSelect a time control event to report:")
-        print(f"  1: {EVENT_EMOJIS['Period End']} Period End (end of a half)")
-        print(f"  2: {EVENT_EMOJIS['Game End']} Game End (end of the match)")
+        # Calculate period boundaries for help text
+        period_boundaries = []
+        for i in range(1, match_context.num_periods + 1):
+            start_minute = 1 + (i - 1) * match_context.period_length
+            end_minute = i * match_context.period_length
+            period_boundaries.append((start_minute, end_minute, i))
+
+        # Add extra time periods if applicable
+        if match_context.num_extra_periods > 0:
+            regular_time_end = match_context.num_periods * match_context.period_length
+            for i in range(1, match_context.num_extra_periods + 1):
+                start_minute = regular_time_end + 1 + (i - 1) * match_context.extra_period_length
+                end_minute = regular_time_end + i * match_context.extra_period_length
+                period = match_context.num_periods + i
+                period_boundaries.append((start_minute, end_minute, period))
+
+        # Display smart timestamp input instructions
+        print("\nEnter a timestamp to automatically report the appropriate time control event:")
+        print("  - Enter the minute number when the event occurred")
+        print("  - The system will automatically determine if it's a period start, period end, or game end")
+        print("\nValid timestamps for this match:")
+
+        for start, end, period in period_boundaries:
+            if period <= match_context.num_periods:
+                print(f"  {start} → Start of Period {period}")
+                print(f"  {end} → End of Period {period}" + (
+                    " and End of Game" if period == match_context.num_periods and match_context.num_extra_periods == 0 else ""))
+            else:
+                # Extra time period
+                extra_period = period - match_context.num_periods
+                print(f"  {start} → Start of Extra Time Period {extra_period}")
+                print(f"  {end} → End of Extra Time Period {extra_period}" + (
+                    " and End of Game" if period == match_context.num_periods + match_context.num_extra_periods else ""))
+
+        print("\nYou can also use stoppage time notation (e.g., 45+2, 90+3)")
+        print("\nOr select a specific event type:")
+        print(f"  1: {EVENT_EMOJIS['Period End']} Period End")
+        print(f"  2: {EVENT_EMOJIS['Game End']} Game End")
         print(f"\n  {MENU_EMOJIS['back']} Enter empty string to return to main menu")
         print("-" * 60)
 
-        choice = input("Select option [1-2]: ")
+        choice = input("Enter timestamp or option [1-2]: ")
 
         if choice == "":
             return  # Go back to main menu
         elif choice in ["1", "2"]:
+            # Use the existing control event reporting flow
             _report_control_event_interactively(match_context, choice)
             _display_current_events_table(match_context)
         else:
-            print("Invalid option. Please try again.")
+            try:
+                # Parse the timestamp input
+                if '+' in choice:
+                    # Handle stoppage time notation (e.g., 45+2)
+                    parts = choice.split('+')
+                    base_minute = int(parts[0])
+                    timestamp = base_minute  # We'll use the base minute to determine the event type
+                else:
+                    timestamp = int(choice)
+
+                # Determine the event type based on the timestamp
+                try:
+                    event_type_id, event_type_name, period = _determine_event_type_from_timestamp(timestamp, match_context)
+
+                    # Report the event
+                    _report_smart_control_event(match_context, event_type_id, event_type_name, period, choice)
+                    _display_current_events_table(match_context)
+
+                except ValueError as e:
+                    print(f"Error: {e}")
+                    print("Please enter a valid timestamp corresponding to a period start or end.")
+
+            except ValueError:
+                print("Invalid input. Please enter a valid number, timestamp (e.g., 45, 45+2), or option [1-2].")
 
 
 def report_staff_events_menu(match_context: MatchContext):
@@ -455,7 +610,9 @@ def _add_control_event_with_implicit_events(control_event: Dict[str, Any], match
             if api_response is not None:  # Check if api_response is not None for success
                 print(f"  API: Event type {event_json['matchhandelsetypid']} {action_type} successfully.")
                 # Use safe_fetch_json_list to ensure the response is a list of dictionaries
-                return safe_fetch_json_list(lambda x: x, api_response)  # Return the api_response as a list
+                # Cast the result to the expected return type
+                result = safe_fetch_json_list(lambda x: x, api_response)
+                return cast(List[Dict[str, Any]], result)
             else:
                 print(
                     f"  API WARNING: Event type {event_json['matchhandelsetypid']} {action_type} - API acknowledged but no success response.")
@@ -673,7 +830,7 @@ def _report_substitution_event(match_context: MatchContext, team_number: int,
         print(json.dumps(report_response, indent=2, ensure_ascii=False))
         # Use safe API wrapper to ensure match_events_json is always a list of dictionaries
         match_events_json = safe_fetch_json_list(api_client.fetch_match_events_json, match_id)
-        return match_events_json  # Return updated events
+        return cast(List[Dict[str, Any]], match_events_json)  # Return updated events with proper type
     else:
         print("\nFailed to report substitution event.")
         return None  # Indicate failure
@@ -714,7 +871,7 @@ def _report_team_official_action_event(match_context: MatchContext) -> Optional[
         print(json.dumps(report_response, indent=2, ensure_ascii=False))
         # Use safe API wrapper to ensure match_events_json is always a list of dictionaries
         match_events_json = safe_fetch_json_list(api_client.fetch_match_events_json, match_id)
-        return match_events_json  # Return updated events
+        return cast(List[Dict[str, Any]], match_events_json)  # Return updated events with proper type
     else:
         print("\nFailed to report team official action.")
         return None  # Indicate failure
@@ -920,7 +1077,7 @@ def _report_player_event(match_context: MatchContext, team_number: int, selected
         print(json.dumps(report_response, indent=2, ensure_ascii=False))
         # Use safe API wrapper to ensure match_events_json is always a list of dictionaries
         match_events_json = safe_fetch_json_list(api_client.fetch_match_events_json, match_id)
-        return match_events_json  # Return updated events
+        return cast(List[Dict[str, Any]], match_events_json)  # Return updated events with proper type
     else:
         print("\nFailed to report match event.")
         return None  # Indicate failure
@@ -934,7 +1091,7 @@ def _handle_clear_events(match_context: MatchContext) -> List[Dict[str, Any]]:
     # Use safe API wrapper to ensure match_events_json is always a list of dictionaries
     match_events_json = safe_fetch_json_list(api_client.fetch_match_events_json, match_id)
     print("All match events cleared.")
-    return match_events_json
+    return cast(List[Dict[str, Any]], match_events_json)  # Return with proper type
 
 
 def _display_current_events_table(match_context: MatchContext):
@@ -1208,7 +1365,9 @@ def _verify_match_results(
             elif result['matchresultattypid'] == 1:  # Fulltime result
                 fetched_scores.regular_time = Score(home=result['matchlag1mal'], away=result['matchlag2mal'])
 
-        if fetched_scores.halftime is None or fetched_scores.regular_time is None:
+        # Check if we have both halftime and fulltime scores
+        missing_scores = fetched_scores.halftime is None or fetched_scores.regular_time is None
+        if missing_scores:  # This condition can be true if the API response is incomplete
             print("ERROR: Could not find both halftime and fulltime results in API response.")
             return None
 
