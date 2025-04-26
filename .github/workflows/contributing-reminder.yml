@@ -1,0 +1,85 @@
+name: CONTRIBUTING.md Reminder
+
+on:
+  issues:
+    types: [opened]
+  pull_request:
+    types: [opened]
+
+jobs:
+  check-contributing-reference:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+    steps:
+      - name: Check for CONTRIBUTING.md reference
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const payload = context.payload;
+            const isIssue = !!payload.issue;
+            const isPR = !!payload.pull_request;
+            
+            if (!isIssue && !isPR) {
+              console.log('Not an issue or PR, skipping');
+              return;
+            }
+            
+            // Get the body text
+            const body = isIssue ? payload.issue.body : payload.pull_request.body;
+            
+            // Check if CONTRIBUTING.md is mentioned
+            const hasContributingReference = body && (
+              body.includes('CONTRIBUTING.md') || 
+              body.includes('CONTRIBUTING') ||
+              body.toLowerCase().includes('contributing guidelines')
+            );
+            
+            if (!hasContributingReference) {
+              // Prepare the comment based on whether it's an issue or PR
+              const commentType = isIssue ? 'issue' : 'pull request';
+              const comment = `👋 Thank you for your ${commentType}!
+              
+### Friendly Reminder About Contributing Guidelines
+
+Please take a moment to review our [CONTRIBUTING.md](../blob/main/CONTRIBUTING.md) document, which contains important guidelines for contributing to this project.
+
+For ${isIssue ? 'issues' : 'pull requests'}, we recommend:
+${isIssue ? 
+`- Following our issue reporting format
+- Including all relevant information to help maintainers understand the issue
+- Referencing CONTRIBUTING.md in your issue description` : 
+`- Following our GitFlow branching model
+- Ensuring your code follows our style guidelines
+- Including tests for new features or bug fixes
+- Referencing CONTRIBUTING.md in your PR description`}
+
+You can update your ${commentType} description to include a reference to CONTRIBUTING.md.
+
+Thank you for helping us maintain a consistent and efficient development process! 🙏`;
+              
+              // Post the comment
+              const commentPayload = isIssue ? 
+                { issue_number: payload.issue.number, owner: context.repo.owner, repo: context.repo.repo, body: comment } :
+                { pull_number: payload.pull_request.number, owner: context.repo.owner, repo: context.repo.repo, body: comment };
+              
+              const apiMethod = isIssue ? 'issues.createComment' : 'pulls.createReview';
+              
+              if (isIssue) {
+                await github.rest.issues.createComment(commentPayload);
+              } else {
+                await github.rest.pulls.createReview({
+                  pull_number: payload.pull_request.number,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: comment,
+                  event: 'COMMENT'
+                });
+              }
+              
+              console.log(`Added CONTRIBUTING.md reminder to ${commentType} #${isIssue ? payload.issue.number : payload.pull_request.number}`);
+            } else {
+              console.log(`CONTRIBUTING.md already referenced in ${isIssue ? 'issue' : 'PR'} #${isIssue ? payload.issue.number : payload.pull_request.number}, no reminder needed`);
+            }
