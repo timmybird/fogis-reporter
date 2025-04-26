@@ -2,11 +2,20 @@
 
 Thank you for your interest in contributing to FOGIS Reporter! This document provides guidelines and instructions for contributing to this project.
 
+## Organization-Wide Guidelines
+
+**Important:** This repository follows the PitchConnect organization-wide contribution guidelines. Please refer to the [organization-wide CONTRIBUTING document](https://github.com/PitchConnect/.github/blob/main/CONTRIBUTING.md) for essential information that applies to all PitchConnect repositories.
+
+The organization-wide guidelines should be followed in addition to the repository-specific guidelines outlined in this document.
+
 ## Table of Contents
 
+- [Organization-Wide Guidelines](#organization-wide-guidelines)
 - [Code of Conduct](#code-of-conduct)
 - [Getting Started](#getting-started)
 - [Development Workflow](#development-workflow)
+- [GitFlow Pattern](#gitflow-pattern)
+- [GitHub CLI Best Practices](#github-cli-best-practices)
 - [Pull Request Process](#pull-request-process)
 - [Coding Standards](#coding-standards)
 - [Testing](#testing)
@@ -36,13 +45,25 @@ The setup script will:
 
 ## Development Workflow
 
-1. Create a new branch for your feature or bugfix:
+This project follows the GitFlow workflow pattern. Please read the [GitFlow Pattern](#gitflow-pattern) section for details.
+
+1. Create a new branch for your feature or bugfix following the GitFlow naming conventions:
    ```
+   # For features (branch from develop)
+   git checkout develop
    git checkout -b feature/your-feature-name
    ```
    or
    ```
+   # For bugfixes (branch from develop)
+   git checkout develop
    git checkout -b fix/your-bugfix-name
+   ```
+   or
+   ```
+   # For hotfixes (branch from main)
+   git checkout main
+   git checkout -b hotfix/critical-issue-fix
    ```
 
 2. Make your changes and commit them with clear, descriptive commit messages:
@@ -57,14 +78,92 @@ The setup script will:
 
 4. Create a pull request from your branch to the main repository
 
+## GitFlow Pattern
+
+This project follows the GitFlow branching model. Here's an overview of the branch structure:
+
+- **main**: Production-ready code. Only merge from release branches or hotfix branches.
+- **develop**: Main development branch. Features are merged into this branch.
+- **feature/\***: Feature branches for new functionality. Branch off from develop.
+- **fix/\***: Bug fix branches for non-critical issues. Branch off from develop.
+- **release/\***: Release preparation branches. Branch off from develop.
+- **hotfix/\***: Hotfix branches for critical production issues. Branch off from main.
+
+Workflow:
+
+1. Create feature branches from develop
+2. When a feature is complete, merge it into develop
+3. When ready for release, create a release branch from develop
+4. After testing the release branch, merge it into main and back into develop
+5. If issues are found in production, create a hotfix branch from main
+6. After fixing, merge the hotfix into both main and develop
+
+## GitHub CLI Best Practices
+
+When using GitHub CLI (`gh`), be aware of the following limitations and best practices:
+
+### Markdown Handling
+
+GitHub CLI has limitations when handling complex markdown content directly in command arguments. For complex markdown content (issues, pull requests, comments), use files instead.
+
+**Example: Creating an issue with complex markdown**
+
+```bash
+# Instead of this (which may not render markdown correctly):
+# gh issue create --title "Complex Issue" --body "## Heading\n- List item 1\n- List item 2"
+
+# Do this instead:
+# 1. Create a markdown file with your content
+cat > issue_description.md << 'EOL'
+## Problem Description
+
+- List item 1
+- List item 2
+
+## Steps to Reproduce
+
+1. Step one
+2. Step two
+
+```code example```
+EOL
+
+# 2. Create the issue using the file
+gh issue create --title "Complex Issue" --body-file issue_description.md
+```
+
+**Example: Creating a pull request with complex markdown**
+
+```bash
+cat > pr_description.md << 'EOL'
+## Changes Made
+
+- Implemented feature X
+- Fixed bug Y
+
+## Testing Done
+
+- Added unit tests
+- Manually tested scenarios
+
+## Screenshots
+
+![Description](url-to-image)
+EOL
+
+gh pr create --title "Add new feature" --body-file pr_description.md
+```
+
 ## Pull Request Process
 
 1. **Always reference the issue** your PR addresses using the GitHub issue number (e.g., "Fixes #123")
-2. Ensure your code passes all tests
-3. Update documentation if necessary
-4. Add tests for new features
-5. Make sure your code follows the project's coding standards
-6. Request a review from a maintainer
+2. Follow the GitFlow pattern when targeting branches (usually target develop for features, main for hotfixes)
+3. For complex PR descriptions, use the GitHub CLI with markdown files as described in the [GitHub CLI Best Practices](#github-cli-best-practices) section
+4. Ensure your code passes all tests
+5. Update documentation if necessary
+6. Add tests for new features
+7. Make sure your code follows the project's coding standards
+8. Request a review from a maintainer
 
 ## Coding Standards
 
