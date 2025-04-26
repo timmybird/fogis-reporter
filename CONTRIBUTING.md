@@ -15,6 +15,7 @@ The organization-wide guidelines should be followed in addition to the repositor
 - [Getting Started](#getting-started)
 - [Development Workflow](#development-workflow)
 - [GitFlow Pattern](#gitflow-pattern)
+  - [GitHub Issue Closing and GitFlow](#github-issue-closing-and-gitflow)
 - [GitHub CLI Best Practices](#github-cli-best-practices)
 - [Pull Request Process](#pull-request-process)
 - [Issue Reporting Guidelines](#issue-reporting-guidelines)
@@ -99,6 +100,22 @@ Workflow:
 5. If issues are found in production, create a hotfix branch from main
 6. After fixing, merge the hotfix into both main and develop
 
+### GitHub Issue Closing and GitFlow
+
+**Important:** GitHub only automatically closes issues when PRs with keywords like "Fixes #123" or "Closes #123" are merged into the **default branch** (main). When following GitFlow, most PRs are merged into the `develop` branch, not directly to `main`.
+
+To handle this limitation, you have two options:
+
+1. **Manual closure**: After merging a PR into `develop` that implements an issue, manually close the issue with a comment explaining it's implemented in `develop` and will be in `main` with the next release.
+
+   ```bash
+   gh issue close 123 --comment "This issue has been implemented in PR #456, which has been merged into the develop branch following our GitFlow workflow."
+   ```
+
+2. **Alternative wording**: Use "Addresses #123" or "Implements #123" instead of "Fixes #123" in PR descriptions for PRs targeting `develop`. This creates a reference without promising automatic closure.
+
+This approach ensures accurate issue tracking while following GitFlow best practices.
+
 ## GitHub CLI Best Practices
 
 When using GitHub CLI (`gh`), be aware of the following limitations and best practices:
@@ -180,7 +197,9 @@ gh issue create --title "Issue Title" --body-file /tmp/issue_description.md
 
 ## Pull Request Process
 
-1. **Always reference the issue** your PR addresses using the GitHub issue number (e.g., "Fixes #123")
+1. **Always reference the issue** your PR addresses using the GitHub issue number
+   - For PRs targeting `main`: Use "Fixes #123" or "Closes #123" for automatic closure
+   - For PRs targeting `develop`: Use "Addresses #123" or "Implements #123" (see [GitHub Issue Closing and GitFlow](#github-issue-closing-and-gitflow))
 2. **Reference CONTRIBUTING.md**: Include a link to CONTRIBUTING.md in your PR description as a reminder for reviewers
 3. Follow the GitFlow pattern when targeting branches (usually target develop for features, main for hotfixes)
 4. For complex PR descriptions, use the GitHub CLI with markdown files as described in the [GitHub CLI Best Practices](#github-cli-best-practices) section
