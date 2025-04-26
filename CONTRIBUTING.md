@@ -155,6 +155,29 @@ EOL
 gh pr create --title "Add new feature" --body-file pr_description.md
 ```
 
+### Cleaning Up Temporary Markdown Files
+
+After creating issues or PRs using markdown files, remember to clean up these temporary files to avoid cluttering the repository:
+
+```bash
+# After your PR or issue is created, remove the temporary file
+rm issue_description.md
+rm pr_description.md
+```
+
+Alternatively, you can create these files in a temporary directory:
+
+```bash
+# Create files in /tmp directory (they will be automatically cleaned up eventually)
+cat > /tmp/issue_description.md << 'EOL'
+...
+EOL
+
+gh issue create --title "Issue Title" --body-file /tmp/issue_description.md
+```
+
+**Important:** Always clean up temporary markdown files before merging a PR. These files should not be committed to the repository.
+
 ## Pull Request Process
 
 1. **Always reference the issue** your PR addresses using the GitHub issue number (e.g., "Fixes #123")
@@ -165,7 +188,8 @@ gh pr create --title "Add new feature" --body-file pr_description.md
 6. Update documentation if necessary
 7. Add tests for new features
 8. Make sure your code follows the project's coding standards
-9. Request a review from a maintainer
+9. **Clean up temporary files**: Remove any temporary markdown files or other temporary files before merging
+10. Request a review from a maintainer
 
 ## Issue Reporting Guidelines
 
@@ -295,5 +319,7 @@ If you are an AI assistant helping with this project, please follow these additi
 8. **Documentation**: Update documentation to reflect any changes made
 
 9. **Reference CONTRIBUTING.md**: Always mention and link to CONTRIBUTING.md in PRs and issues
+
+10. **Clean up temporary files**: Remove any temporary markdown files created for PRs or issues before merging
 
 Remember that your contributions should be focused on helping the human developers, not replacing them. Your role is to assist, suggest, and implement when asked, but final decisions rest with the human maintainers.
