@@ -1037,7 +1037,7 @@ def _report_goal_with_smart_input(match_context: MatchContext, team_number: int,
             return None
 
         print(f"{event_type_name} reported for player #{jersey_number_int} at minute {minute}.")
-        match_events_json = safe_fetch_json_list(api_client.fetch_match_events_json, match_id)
+        match_events_json: Optional[List[Dict[str, Any]]] = safe_fetch_json_list(api_client.fetch_match_events_json, match_id)
         return match_events_json
     except Exception as e:
         print(f"Error reporting goal: {e}")
