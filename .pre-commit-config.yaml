@@ -3,7 +3,7 @@ default_language_version:
     python: python3
 
 # Global options for all hooks
-default_stages: [commit]
+default_stages: [pre-commit]
 
 repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
@@ -17,6 +17,12 @@ repos:
         args: ['--maxkb=500']
     -   id: check-json
     -   id: debug-statements
+
+-   repo: https://github.com/psf/black
+    rev: 23.9.1
+    hooks:
+    -   id: black
+        language_version: python3
 
 -   repo: https://github.com/pycqa/flake8
     rev: 6.1.0
@@ -58,8 +64,9 @@ repos:
     -   id: isort
         args: [--profile=black, --filter-files]
 
--   repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.0.292
+-   repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.6
     hooks:
     -   id: ruff
-        args: [--fix, --exit-non-zero-on-fix]
+        args: [--fix]
+    -   id: ruff-format
