@@ -23,16 +23,16 @@ jobs:
         pip install black isort flake8 flake8-docstrings flake8-import-order flake8-bugbear flake8-comprehensions flake8-return mypy ruff
 
     - name: Run black
-      run: python -m black --check .
+      run: python -m black --check --exclude=".env|venv" .
 
     - name: Run isort
-      run: python -m isort --check .
+      run: python -m isort --check --skip .env .
 
     - name: Run flake8
-      run: python -m flake8 .
+      run: python -m flake8 --exclude=.env,venv .
 
     - name: Run ruff
-      run: python -m ruff check .
+      run: python -m ruff check --exclude=.env,venv .
 
     - name: Run mypy
-      run: python -m mypy .
+      run: python -m mypy --exclude .env .
