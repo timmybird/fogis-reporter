@@ -87,6 +87,14 @@ This script fixes import order issues:
 python scripts/fix_import_order.py
 ```
 
+### `scripts/fix_existing_code.py`
+
+This script runs all the style fixers on the entire codebase to bring it up to the project's coding standards. It should be run once to establish a baseline of code style compliance:
+
+```bash
+python scripts/fix_existing_code.py
+```
+
 ## Pre-commit Hooks
 
 Pre-commit hooks have been configured to automatically check code style before committing. To set up pre-commit hooks:
@@ -154,14 +162,30 @@ The most common style issues in the codebase are:
 3. **Docstring Issues (D100, D200, D202, D205, D212, D415)**: Missing or incorrectly formatted docstrings
 4. **Unnecessary else/elif after return (R505, R508)**: Redundant control flow
 
-## Iterative Approach
+## Fixing Existing Code
 
-We recommend an iterative approach to fixing style issues:
+To fix style issues in the existing codebase, we provide two approaches:
+
+### Comprehensive Fix
+
+To fix all style issues at once, run:
+
+```bash
+python scripts/fix_existing_code.py
+```
+
+This will apply all style fixers to the entire codebase. Review the changes carefully before committing.
+
+### Iterative Approach
+
+Alternatively, we recommend an iterative approach to fixing style issues:
 
 1. Start with the most critical files
 2. Fix one category of issues at a time
 3. Run tests after each set of changes
 4. Commit changes frequently
+
+This approach allows for more controlled changes and easier review.
 
 ## CI/CD Integration
 
