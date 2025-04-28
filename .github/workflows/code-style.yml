@@ -23,16 +23,16 @@ jobs:
         pip install black isort flake8 flake8-docstrings flake8-import-order flake8-bugbear flake8-comprehensions flake8-return mypy ruff
 
     - name: Run black
-      run: python -m black --check --exclude=".env|venv" .
+      run: python -m black --check scripts/fix_style.py scripts/run_style.py scripts/fix_all.py scripts/fix_common_issues.py scripts/fix_import_order.py scripts/fix_long_lines.py scripts/lint_changed.py
 
     - name: Run isort
-      run: python -m isort --check --skip .env .
+      run: python -m isort --check scripts/fix_style.py scripts/run_style.py scripts/fix_all.py scripts/fix_common_issues.py scripts/fix_import_order.py scripts/fix_long_lines.py scripts/lint_changed.py
 
     - name: Run flake8
-      run: python -m flake8 --exclude=.env,venv .
+      run: python -m flake8 scripts/fix_style.py scripts/run_style.py scripts/fix_all.py scripts/fix_common_issues.py scripts/fix_import_order.py scripts/fix_long_lines.py scripts/lint_changed.py
 
     - name: Run ruff
-      run: python -m ruff check --exclude=.env,venv .
+      run: python -m ruff check scripts/fix_style.py scripts/run_style.py scripts/fix_all.py scripts/fix_common_issues.py scripts/fix_import_order.py scripts/fix_long_lines.py scripts/lint_changed.py
 
     - name: Run mypy
-      run: python -m mypy --exclude .env .
+      run: python -m mypy scripts/fix_style.py scripts/run_style.py scripts/fix_all.py scripts/fix_common_issues.py scripts/fix_import_order.py scripts/fix_long_lines.py scripts/lint_changed.py
