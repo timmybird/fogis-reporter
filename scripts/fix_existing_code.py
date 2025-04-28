@@ -6,6 +6,7 @@ the project's coding standards. It should be run once to establish a baseline
 of code style compliance.
 """
 
+import argparse
 import os
 import subprocess
 import sys
@@ -79,15 +80,28 @@ def main():
     Returns:
         Exit code (0 for success, non-zero for failure).
     """
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(
+        description="Fix existing code style issues in the codebase."
+    )
+    parser.add_argument(
+        "--yes",
+        "-y",
+        action="store_true",
+        help="Run in non-interactive mode (no confirmation)",
+    )
+    args = parser.parse_args()
+
     print("This script will fix existing code style issues in the codebase.")
     print("It should be run once to establish a baseline of code style compliance.")
     print("WARNING: This will modify files in the codebase.")
 
-    # Ask for confirmation
-    response = input("Do you want to continue? (y/n): ")
-    if response.lower() not in ["y", "yes"]:
-        print("Aborted.")
-        return 1
+    # Ask for confirmation if not in non-interactive mode
+    if not args.yes:
+        response = input("Do you want to continue? (y/n): ")
+        if response.lower() not in ["y", "yes"]:
+            print("Aborted.")
+            return 1
 
     # Fix existing code
     success = fix_existing_code()
