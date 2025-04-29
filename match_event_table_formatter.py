@@ -1,10 +1,24 @@
-from typing import Dict, List, Any, Optional
+"""Match Event Table Formatter module.
+
+This module provides functionality for match event table formatter.
+"""
+
+from typing import Any, Dict, List, Optional
+
 from tabulate import tabulate
+
 from emoji_config import EVENT_EMOJIS
 
 
 class MatchEventTableFormatter:
-    def __init__(self, event_types: Dict[int, Dict[str, Any]], team1_name: str, team2_name: str, team1_id: int, team2_id: int):
+    def __init__(
+        self,
+        event_types: Dict[int, Dict[str, Any]],
+        team1_name: str,
+        team2_name: str,
+        team1_id: int,
+        team2_id: int
+    ):
         """
         Initializes the MatchEventTableFormatter.
 
@@ -21,9 +35,16 @@ class MatchEventTableFormatter:
         self.team1_id = team1_id  # ADDED
         self.team2_id = team2_id  # ADDED
         self.event_categories: Dict[str, List[str]] = {
-            "Goals": ["Regular Goal", "Header Goal", "Corner Goal", "Free Kick Goal", "Own Goal", "Penalty Goal"],
+            "Goals": [
+                "Regular Goal",
+                "Header Goal",
+                "Corner Goal",
+                "Free Kick Goal",
+                "Own Goal",
+                "Penalty Goal"
+            ],
             "Yellow Cards": ["Yellow Card", "Second Yellow Card"],
-            "Red Cards": ["Red Card (Denying Goal Opportunity)", "Red Card (Other Reasons)"],
+            "Red Cards": ["Red Card (Denying Goal Opportunity)"],
             "Substitutions": ["Substitution"],
             "Other Events": []
         }
@@ -38,7 +59,8 @@ class MatchEventTableFormatter:
         }
 
     def _populate_other_events_category(self) -> None:
-        """Populates the 'Other Events' category with event types not in other categories."""
+        """Populates the 'Other Events' category with event types not in other" \
+            "categories."""
         categorized_event_names: List[str] = []
         for category_list in self.event_categories.values():
             if isinstance(category_list, list):
@@ -52,7 +74,8 @@ class MatchEventTableFormatter:
     def format_structured_table(self, match_events_json: List[Dict[str, Any]], team1_players_json: List[Dict[str, Any]],
                              team2_players_json: List[Dict[str, Any]], team1_score: int, team2_score: int,
                              halftime_score_team1: int, halftime_score_team2: int) -> str:
-        """Formats match events into a structured table with scoreline, skipping 'Unknown Team' events."""
+        """Formats match events into a structured table with scoreline, skipping" \
+            "'Unknown Team' events."""
         if not match_events_json:
             return "No events reported yet."
 
@@ -68,11 +91,20 @@ class MatchEventTableFormatter:
 
         for event in match_events_json:
             event_type_id = event['matchhandelsetypid']
-            event_type_name = self.event_types.get(event_type_id, {}).get('name', 'Unknown Event')
+            event_type_name = self.event_types.get(
+                event_type_id,
+                {}).get('name',
+                'Unknown Event'
+            )
             team_id = event['matchlagid']
             team_name = self.team1_name if team_id == self.team1_id else self.team2_name if team_id == self.team2_id else "Unknown Team"
 
-            player_jersey = self._get_player_jersey_from_event(event, team_id, team1_players_json, team2_players_json)
+            player_jersey = self._get_player_jersey_from_event(
+                event,
+                team_id,
+                team1_players_json,
+                team2_players_json
+            )
 
             event_info = ""
             event_emoji = EVENT_EMOJIS.get(event_type_name, "")
@@ -82,15 +114,23 @@ class MatchEventTableFormatter:
             elif event_type_name in self.event_categories["Red Cards"]:
                 event_info = f"{event_emoji} {player_jersey} - {event['matchminut']}'"
             elif event_type_name in self.event_categories["Substitutions"]:
-                player2_jersey_out = self._get_player2_jersey_from_event(event, team_id, team1_players_json, team2_players_json)
-                event_info = f"{event_emoji} {player_jersey} in - {player2_jersey_out} out ({event['matchminut']}')"
+                player2_jersey_out = self._get_player2_jersey_from_event(
+                    event,
+                    team_id,
+                    team1_players_json,
+                    team2_players_json
+                )
+                event_info = f"{event_emoji} {player_jersey} in - {player2_jersey_out} out" \
+                    "({event['matchminut']}')"
             elif event_type_name in self.event_categories["Goals"]:
                 goal_type_note = ""
                 if event_type_name != "Regular Goal":
                     goal_type_note = f" ({event_type_name.replace(' Goal', '')})"
-                event_info = f"{event_emoji} {player_jersey} - {event['matchminut']}'{goal_type_note}"
+                event_info = f"{event_emoji} {player_jersey} -" \
+                    "{event['matchminut']}'{goal_type_note}"
             else:
-                event_info = f"{event_emoji} {event_type_name} ({player_jersey} - {event['matchminut']}')"
+                event_info = f"{event_emoji} {event_type_name} ({player_jersey} -" \
+                    "{event['matchminut']}')"
 
             category_found = False
             for category_name, event_name_list in self.event_categories.items():
@@ -120,7 +160,10 @@ class MatchEventTableFormatter:
             if any(team_data.values()):
                 category_header = f"{self.category_icons.get(category_name, '')}**{category_name}**"
                 table_rows.append([category_header, "", ""])
-                max_events_in_category = max(len(team_data[self.team1_name]), len(team_data[self.team2_name]))
+                max_events_in_category = max(
+                    len(team_data[self.team1_name]),
+                    len(team_data[self.team2_name])
+                )
                 for i in range(max_events_in_category):
                     team1_event = team_data[self.team1_name][i] if i < len(team_data[self.team1_name]) else ""
                     team2_event = team_data[self.team2_name][i] if i < len(team_data[self.team2_name]) else ""
@@ -131,18 +174,26 @@ class MatchEventTableFormatter:
         if not table_rows:
             return "No events reported yet."
 
-        return tabulate(table_rows, headers=headers, tablefmt="grid", numalign="left", stralign="left")
+        return tabulate(
+            table_rows,
+            headers=headers,
+            tablefmt="grid",
+            numalign="left",
+            stralign="left"
+        )
 
     def _get_player_jersey_from_event(self, event: Dict[str, Any], team_id: int,
                                   team1_players_json: List[Dict[str, Any]],
                                   team2_players_json: List[Dict[str, Any]]) -> str:
-        """Simplified helper function to get player jersey number DIRECTLY from event data."""
+        """Simplified helper function to get player jersey number DIRECTLY from event" \
+            "data."""
         jersey = event.get('trojnummer')
         return str(jersey) if jersey is not None else "N/A"  # Get trojnummer directly from event JSON
 
     def _get_player2_jersey_from_event(self, event: Dict[str, Any], team_id: int,
                                    team1_players_json: List[Dict[str, Any]],
                                    team2_players_json: List[Dict[str, Any]]) -> str:
-        """Simplified helper function to get player2 jersey number DIRECTLY from event data (for substitutions)."""
+        """Simplified helper function to get player2 jersey number DIRECTLY from" \
+            "event data (for substitutions)."""
         jersey = event.get('trojnummer2')
         return str(jersey) if jersey is not None else "N/A"  # Get trojnummer2 directly from event JSON

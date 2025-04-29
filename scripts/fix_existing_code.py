@@ -11,7 +11,6 @@ import os
 import subprocess
 import sys
 
-
 def run_command(command, cwd=None):
     """Run a command and return the exit code.
 
