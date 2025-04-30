@@ -114,12 +114,17 @@ class MatchEventTableFormatter:
             elif event_type_name in self.event_categories["Red Cards"]:
                 event_info = f"{event_emoji} {player_jersey} - {event['matchminut']}'"
             elif event_type_name in self.event_categories["Substitutions"]:
+                # Add debug logging for substitution events
+                print(f"\n[DEBUG] Substitution event data: {event}")
+
                 player2_jersey_out = self._get_player2_jersey_from_event(
                     event,
                     team_id,
                     team1_players_json,
                     team2_players_json
                 )
+                print(f"[DEBUG] Player coming in: {player_jersey}, Player going out: {player2_jersey_out}")
+
                 event_info = f"{event_emoji} {player_jersey} in - {player2_jersey_out} out ({event['matchminut']}')"
             elif event_type_name in self.event_categories["Goals"]:
                 goal_type_note = ""
@@ -182,15 +187,57 @@ class MatchEventTableFormatter:
     def _get_player_jersey_from_event(self, event: Dict[str, Any], team_id: int,
                                   team1_players_json: List[Dict[str, Any]],
                                   team2_players_json: List[Dict[str, Any]]) -> str:
-        """Simplified helper function to get player jersey number DIRECTLY from event" \
-            "data."""
+        """Helper function to get player jersey number from event data.
+
+        First tries to get trojnummer directly from the event. If not available,
+        tries to look up the jersey number using spelareid.
+        """
+        # First try to get trojnummer directly
         jersey = event.get('trojnummer')
-        return str(jersey) if jersey is not None else "N/A"  # Get trojnummer directly from event JSON
+        if jersey is not None:
+            return str(jersey)
+
+        # If trojnummer is not available, try to look up using spelareid
+        player_id = event.get('spelareid')
+        if player_id is not None:
+            # Determine which team's players to search
+            players_json = team1_players_json if team_id == self.team1_id else team2_players_json
+
+            # Look for the player with matching spelareid
+            for player in players_json:
+                if player.get('spelareid') == player_id:
+                    jersey = player.get('trojnummer')
+                    if jersey is not None:
+                        return str(jersey)
+
+        # If all else fails, return N/A
+        return "N/A"
 
     def _get_player2_jersey_from_event(self, event: Dict[str, Any], team_id: int,
                                    team1_players_json: List[Dict[str, Any]],
                                    team2_players_json: List[Dict[str, Any]]) -> str:
-        """Simplified helper function to get player2 jersey number DIRECTLY from" \
-            "event data (for substitutions)."""
+        """Helper function to get player2 jersey number from event data for substitutions.
+
+        First tries to get trojnummer2 directly from the event. If not available,
+        tries to look up the jersey number using spelareid2.
+        """
+        # First try to get trojnummer2 directly
         jersey = event.get('trojnummer2')
-        return str(jersey) if jersey is not None else "N/A"  # Get trojnummer2 directly from event JSON
+        if jersey is not None:
+            return str(jersey)
+
+        # If trojnummer2 is not available, try to look up using spelareid2
+        player_id = event.get('spelareid2')
+        if player_id is not None:
+            # Determine which team's players to search
+            players_json = team1_players_json if team_id == self.team1_id else team2_players_json
+
+            # Look for the player with matching spelareid
+            for player in players_json:
+                if player.get('spelareid') == player_id:
+                    jersey = player.get('trojnummer')
+                    if jersey is not None:
+                        return str(jersey)
+
+        # If all else fails, return N/A
+        return "N/A"
