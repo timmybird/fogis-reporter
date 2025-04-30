@@ -1761,6 +1761,7 @@ def _report_match_results_interactively(match_context: MatchContext):
         print("Match result reporting and verification FAILED.")
 
     print("\n--- Match Result Reporting finished ---")
+    return  # Return to report_results_menu
 
 
 def _get_score_input_from_user(
