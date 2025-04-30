@@ -62,7 +62,7 @@ def select_match_interactively(matches):
                 selected_match = matches[match_index]
                 print(f"\nSelected: {selected_match['label']}")
                 return
-
+            else:
                 print("Invalid match number selected. Please try again.")
         except ValueError:
             print("Invalid input. Please enter a number or empty string to exit.")
@@ -305,16 +305,16 @@ def _determine_event_type_from_timestamp(
     for start, end, period in period_boundaries:
         if timestamp == start:
             # Period Start
-            return
+            return 31, "Period Start", period
         if timestamp == end or (timestamp > end and '+' in str(timestamp)):
             # Period End
             if period == num_periods and num_extra_periods == 0:
                 # Last period of regular time with no extra time - both Period End and Game End
-                return
+                return 33, "Game End", period
             if period == num_periods + num_extra_periods and num_extra_periods > 0:
                 # Last period of extra time - both Period End and Game End
-                return
-
+                return 33, "Game End", period
+            else:
                 # Regular period end
                 return 32, "Period End", period
 
@@ -653,7 +653,7 @@ def _add_control_event_with_implicit_events(
         """Find an existing event of the given type and period."""
         for event in match_context.match_events_json:
             if event['matchhandelsetypid'] == event_type_id and event['period'] == period:
-                return event
+                return dict(event)
         return None
 
     def _report_event_to_api(event_json: Dict[
@@ -673,11 +673,11 @@ def _add_control_event_with_implicit_events(
                 # Use safe_fetch_json_list to ensure the response is a list of dictionaries
                 # Cast the result to the expected return type
                 result = safe_fetch_json_list(lambda x: x, api_response)
-                return
-
+                # Convert to List[Dict[str, Any]]
+                return [dict(item) for item in result] if result else None
+            else:
                 print(
-                    f"API WARNING: Event type {event_json['matchhandelsetypid']}" \
-                        "{action_type} - API acknowledged but no success response.")
+                    f"API WARNING: Event type {event_json['matchhandelsetypid']} {action_type} - API acknowledged but no success response.")
                 print(f"API WARNING: Response: {api_response}" )
 
                 return None  # Return None to indicate failure
@@ -850,8 +850,8 @@ def _add_control_event_with_implicit_events(
             print(f"Context's match_events_json UPDATED with API response (Period Start" \
                 "Period {period}).")
         else:
-            print(f"WARNING: Period Start event (Period {period}) NOT reported to API!" \
-                "Context NOT updated for Period Start.")
+            print(f"WARNING: Period Start event (Period {period}) NOT reported to API! Context NOT updated for Period Start.")
+            return None
 
 
 def _report_substitution_event(match_context: MatchContext, team_number: int,
@@ -940,18 +940,21 @@ def _report_substitution_event(match_context: MatchContext, team_number: int,
                   "matchdeltagareid2": int(game_participant_id_out) if game_participant_id_out else 0,
                   "fotbollstypId": 1, "relateradTillMatchhandelseID": 0}
 
-    report_response = api_client.report_match_event(event_data)
-    if report_response:
-        print("\nMatch Event Report Response (Substitution):")
-        print("Event Type: Substitution")
-        print(json.dumps(report_response, indent=2, ensure_ascii=False))
-        # Use safe API wrapper to ensure match_events_json is always a list of dictionaries
-        match_events_json = safe_fetch_json_list(
-            api_client.fetch_match_events_json,
-            match_id
-        )
-        return
-
+    try:
+        report_response = api_client.report_match_event(event_data)
+        if report_response:
+            print("\nMatch Event Report Response (Substitution):")
+            print("Event Type: Substitution")
+            print(json.dumps(report_response, indent=2, ensure_ascii=False))
+            # Use safe API wrapper to ensure match_events_json is always a list of dictionaries
+            match_events_json = safe_fetch_json_list(
+                api_client.fetch_match_events_json,
+                match_id
+            )
+            # Convert to List[Dict[str, Any]]
+            return [dict(item) for item in match_events_json] if match_events_json else None
+        return None
+    except Exception:
         print("\nFailed to report substitution event.")
         return None  # Indicate failure
 
@@ -984,18 +987,21 @@ def _report_team_official_action_event(match_context: MatchContext) -> Optional[
                    "avvisadgrov": avvisadgrov, "varnad": varnad,
                    "ansvarig": False}
 
-    report_response = api_client.report_team_official_action(action_data)
-    if report_response:
-        print("\nTeam Official Action Report Response:")
-        print("Event Type: Team Official Action")
-        print(json.dumps(report_response, indent=2, ensure_ascii=False))
-        # Use safe API wrapper to ensure match_events_json is always a list of dictionaries
-        match_events_json = safe_fetch_json_list(
-            api_client.fetch_match_events_json,
-            match_id
-        )
-        return
-
+    try:
+        report_response = api_client.report_team_official_action(action_data)
+        if report_response:
+            print("\nTeam Official Action Report Response:")
+            print("Event Type: Team Official Action")
+            print(json.dumps(report_response, indent=2, ensure_ascii=False))
+            # Use safe API wrapper to ensure match_events_json is always a list of dictionaries
+            match_events_json = safe_fetch_json_list(
+                api_client.fetch_match_events_json,
+                match_id
+            )
+            # Convert to List[Dict[str, Any]]
+            return [dict(item) for item in match_events_json] if match_events_json else None
+        return None
+    except Exception:
         print("\nFailed to report team official action.")
         return None  # Indicate failure
 
@@ -1245,18 +1251,21 @@ def _report_player_event(match_context: MatchContext, team_number: int, selected
         event_data["hemmamal"] = team1_score
         event_data["bortamal"] = team2_score
 
-    report_response = api_client.report_match_event(event_data)
-    if report_response:
-        print("\nMatch Event Report Response:")
-        print(f"Event Type: {event_type_name}")
-        print(json.dumps(report_response, indent=2, ensure_ascii=False))
-        # Use safe API wrapper to ensure match_events_json is always a list of dictionaries
-        match_events_json = safe_fetch_json_list(
-            api_client.fetch_match_events_json,
-            match_id
-        )
-        return
-
+    try:
+        report_response = api_client.report_match_event(event_data)
+        if report_response:
+            print("\nMatch Event Report Response:")
+            print(f"Event Type: {event_type_name}")
+            print(json.dumps(report_response, indent=2, ensure_ascii=False))
+            # Use safe API wrapper to ensure match_events_json is always a list of dictionaries
+            match_events_json = safe_fetch_json_list(
+                api_client.fetch_match_events_json,
+                match_id
+            )
+            # Convert to List[Dict[str, Any]]
+            return [dict(item) for item in match_events_json] if match_events_json else None
+        return None
+    except Exception:
         print("\nFailed to report match event.")
         return None  # Indicate failure
 
@@ -1341,7 +1350,7 @@ def _get_event_details_from_input(
                 return
             if event_category == "4":  # Team Official Action
                 # Handle Team Official Action
-                event_choice_str = None
+                event_choice_str = ""
                 for event_id, event_type in EVENT_TYPES.items():
                     if event_type.get("name") == "Team Official Action":
                         event_choice_str = str(event_id)
@@ -1353,10 +1362,10 @@ def _get_event_details_from_input(
                     event_type_name = selected_event_type["name"]
                     is_goal_event = selected_event_type.get("goal", False)
                     current_team_players_json = team1_players_json if team_number == 1 else team2_players_json
-                    return
-
+                    return selected_event_type, event_type_id, event_type_name, is_goal_event, current_team_players_json
+                else:
                     print("Team Official Action event type not found.")
-                    return
+                    return None, None, None, False, None
 
             # Original behavior - show all event types
             print("\nSelect Event Type:")
@@ -1376,17 +1385,17 @@ def _get_event_details_from_input(
                 event_type_name = selected_event_type["name"]
                 is_goal_event = selected_event_type.get("goal", False)
                 current_team_players_json = team1_players_json if team_number == 1 else team2_players_json
-                return
-
+                return selected_event_type, event_type_id, event_type_name, is_goal_event, current_team_players_json
+            else:
                 print("Invalid event type number selected.")
-                return
-
+                return None, None, None, False, None
+        else:
             print("Invalid input. Please enter a number for event type.")
-            return None, None, None, None, None, None  # Indicate invalid input
+            return None, None, None, False, None  # Indicate invalid input
 
     except ValueError:
         print("Invalid input. Please enter 1, 2, 'done', or 'clear'.")
-        return None, None, None, None, None, None  # Indicate invalid input
+        return None, None, None, False, None  # Indicate invalid input
 
 
 def _report_match_results_interactively(match_context: MatchContext):
@@ -1520,8 +1529,9 @@ def _mark_reporting_finished_with_error_handling(match_context: MatchContext):
         elif confirm_finished == 'no':
             print("Skipping 'Mark Reporting Finished' for now.")
             return
-
+        else:
             print("Invalid input. Please enter 'yes' or 'no'." )
+            return
 
 
     api_client = match_context.api_client
@@ -1596,20 +1606,12 @@ def _verify_match_results(
 
         if halftime_match and fulltime_match:
             print("Match result verification successful: Scores match API data.")
-            return
-
+            return fetched_scores
+        else:
             print("ERROR: Match result verification failed. Scores DO NOT match API data!" )
 
-            print(
-                f"Reported Halftime:" \
-                    "{reported_scores.halftime.home}-{reported_scores.halftime.away}," \
-                    "Fetched Halftime:" \
-                    "{fetched_scores.halftime.home}-{fetched_scores.halftime.away}")
-            print(
-                f"Reported Fulltime:" \
-                    "{reported_scores.regular_time.home}-{reported_scores.regular_time.away}," \
-                    "Fetched Fulltime:" \
-                    "{fetched_scores.regular_time.home}-{fetched_scores.regular_time.away}")
+            print(f"Reported Halftime: {reported_scores.halftime.home}-{reported_scores.halftime.away}, Fetched Halftime: {fetched_scores.halftime.home}-{fetched_scores.halftime.away}")
+            print(f"Reported Fulltime: {reported_scores.regular_time.home}-{reported_scores.regular_time.away}, Fetched Fulltime: {fetched_scores.regular_time.home}-{fetched_scores.regular_time.away}")
             return None
 
     except Exception as e:
