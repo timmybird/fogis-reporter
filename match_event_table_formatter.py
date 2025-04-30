@@ -120,17 +120,14 @@ class MatchEventTableFormatter:
                     team1_players_json,
                     team2_players_json
                 )
-                event_info = f"{event_emoji} {player_jersey} in - {player2_jersey_out} out" \
-                    "({event['matchminut']}')"
+                event_info = f"{event_emoji} {player_jersey} in - {player2_jersey_out} out ({event['matchminut']}')"
             elif event_type_name in self.event_categories["Goals"]:
                 goal_type_note = ""
                 if event_type_name != "Regular Goal":
                     goal_type_note = f" ({event_type_name.replace(' Goal', '')})"
-                event_info = f"{event_emoji} {player_jersey} -" \
-                    "{event['matchminut']}'{goal_type_note}"
+                event_info = f"{event_emoji} {player_jersey} - {event['matchminut']}'{goal_type_note}"
             else:
-                event_info = f"{event_emoji} {event_type_name} ({player_jersey} -" \
-                    "{event['matchminut']}')"
+                event_info = f"{event_emoji} {event_type_name} ({player_jersey} - {event['matchminut']}')"
 
             category_found = False
             for category_name, event_name_list in self.event_categories.items():
