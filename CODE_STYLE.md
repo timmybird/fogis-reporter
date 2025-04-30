@@ -95,6 +95,12 @@ This script runs all the style fixers on the entire codebase to bring it up to t
 python scripts/fix_existing_code.py
 ```
 
+For non-interactive mode (e.g., in CI/CD pipelines):
+
+```bash
+python scripts/fix_existing_code.py --yes
+```
+
 ## Pre-commit Hooks
 
 Pre-commit hooks have been configured to automatically check code style before committing. To set up pre-commit hooks:
