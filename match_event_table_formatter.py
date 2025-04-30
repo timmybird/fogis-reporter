@@ -117,27 +117,12 @@ class MatchEventTableFormatter:
             elif event_type_name in self.event_categories["Red Cards"]:
                 event_info = f"{event_emoji} {player_jersey} - {event['matchminut']}'"
             elif event_type_name in self.event_categories["Substitutions"]:
-                # Add debug logging for substitution events
-                print(f"\n[DEBUG] Substitution event data: {event}")
-
-                # Check for related event
-                related_event_id = event.get('relateradTillMatchhandelseID')
-                if related_event_id and related_event_id != 0:
-                    print(f"[DEBUG] Related event ID: {related_event_id}")
-                    # Find the related event
-                    for related_event in event.get('_all_events', []):
-                        if related_event.get('matchhandelseid') == related_event_id:
-                            print(f"[DEBUG] Found related event: {related_event}")
-                            break
-
                 player2_jersey_out = self._get_player2_jersey_from_event(
                     event,
                     team_id,
                     team1_players_json,
                     team2_players_json
                 )
-                print(f"[DEBUG] Player coming in: {player_jersey}, Player going out: {player2_jersey_out}")
-
                 event_info = f"{event_emoji} {player_jersey} in - {player2_jersey_out} out ({event['matchminut']}')"
             elif event_type_name in self.event_categories["Goals"]:
                 goal_type_note = ""

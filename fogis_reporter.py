@@ -32,7 +32,6 @@ def select_match_interactively(matches):
     Returns:
         dict: The selected match dictionary, or None if selection fails or user chooses to exit.
     """
-    print("\n[DEBUG] Entering select_match_interactively function")
     if not matches:
         print("No matches available to select.")
         return
@@ -61,7 +60,6 @@ def select_match_interactively(matches):
             if 0 <= match_index < len(matches):
                 selected_match = matches[match_index]
                 print(f"\nSelected: {selected_match['label']}")
-                print("\n[DEBUG] Exiting select_match_interactively function with selected match")
                 return selected_match
             else:
                 print("Invalid match number selected. Please try again.")
@@ -124,7 +122,6 @@ def _parse_minute_input(
 
 def display_main_menu(match_context: MatchContext):
     """Displays the main menu with different event categories."""
-    print("\n[DEBUG] Entering display_main_menu function")
     while True:
         # Get current scores for display
         scores = match_context.scores
@@ -599,7 +596,6 @@ def report_staff_events_menu(match_context: MatchContext):
 
 def report_results_menu(match_context: MatchContext):
     """Menu for reporting match results"""
-    print("\n[DEBUG] Entering report_results_menu function")
     while True:
         # Get current scores for display
         scores = match_context.scores
@@ -1675,7 +1671,6 @@ def _report_match_results_interactively(match_context: MatchContext):
     Uses MatchContext for data and API client.
     Verifies reported results against API data.
     """
-    print("\n[DEBUG] Entering _report_match_results_interactively function")
     selected_match = match_context.selected_match
     team1_name = match_context.team1_name
     team2_name = match_context.team2_name
@@ -1766,7 +1761,6 @@ def _report_match_results_interactively(match_context: MatchContext):
         print("Match result reporting and verification FAILED.")
 
     print("\n--- Match Result Reporting finished ---")
-    print("\n[DEBUG] Exiting _report_match_results_interactively function, returning to report_results_menu")
     return  # Return to report_results_menu
 
 
@@ -2010,11 +2004,9 @@ def main():
             return
 
         print(f"Found {len(matches)} matches available for reporting.")
-        print("\n[DEBUG] About to call select_match_interactively from main function")
         selected_match = select_match_interactively(
             matches
         )  # Use new function for match selection
-        print("\n[DEBUG] Returned from select_match_interactively to main function")
         if not selected_match:
             print("\nThank you for using FOGIS Match Reporter. Goodbye!")
             return  # Exit if no match selected or user chose to exit
@@ -2147,9 +2139,7 @@ def main():
             # --- End event table printing ---
 
             # Use the new main menu instead of directly calling reporting functions
-            print("\n[DEBUG] About to call display_main_menu from main function")
             display_main_menu(match_context)
-            print("\n[DEBUG] Returned from display_main_menu to main function")
 
         else:  # If fetch_errors flag is True (any fetch failed)
             print(
