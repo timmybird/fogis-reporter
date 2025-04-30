@@ -21,7 +21,9 @@ from fogis_reporter import report_results_menu, _report_match_results_interactiv
 def test_get_score_input_from_user():
     """Test getting score input from user."""
     # Mock input for halftime and fulltime scores
-    with patch('builtins.input', side_effect=['1', '0', '2', '1']):
+    # First input is 'n' to decline accepting all calculated scores
+    # Then provide individual scores
+    with patch('builtins.input', side_effect=['n', '1', '0', '2', '1']):
         # Call the function
         halftime_score_team1, halftime_score_team2, team1_score, team2_score = _get_score_input_from_user(
             0, 0, "Team 1", "Team 2", 0, 0
@@ -37,7 +39,9 @@ def test_get_score_input_from_user():
 def test_get_score_input_from_user_invalid():
     """Test getting score input with invalid input."""
     # Mock input with invalid values first, then valid values
-    with patch('builtins.input', side_effect=['abc', '0', '0', '0']):
+    # First input is 'n' to decline accepting all calculated scores
+    # Then provide invalid input followed by valid inputs
+    with patch('builtins.input', side_effect=['n', 'abc', '0', '0', '0']):
         # Call the function
         try:
             result = _get_score_input_from_user(0, 0, "Team 1", "Team 2", 0, 0)
@@ -48,13 +52,32 @@ def test_get_score_input_from_user_invalid():
             pass
 
     # Second call with valid input
-    with patch('builtins.input', side_effect=['1', '0', '2', '1']):
+    # First input is 'n' to decline accepting all calculated scores
+    # Then provide valid inputs
+    with patch('builtins.input', side_effect=['n', '1', '0', '2', '1']):
         # Call the function
         halftime_score_team1, halftime_score_team2, team1_score, team2_score = _get_score_input_from_user(
             0, 0, "Team 1", "Team 2", 0, 0
         )
 
         # Check the returned values
+        assert halftime_score_team1 == 1
+        assert halftime_score_team2 == 0
+        assert team1_score == 2
+        assert team2_score == 1
+
+
+# Test for accepting all calculated scores at once
+def test_get_score_input_accept_all():
+    """Test accepting all calculated scores at once."""
+    # Mock input to accept all calculated scores
+    with patch('builtins.input', return_value='y'):
+        # Call the function with pre-calculated scores
+        halftime_score_team1, halftime_score_team2, team1_score, team2_score = _get_score_input_from_user(
+            1, 0, "Team 1", "Team 2", 2, 1
+        )
+
+        # Check that the returned values match the pre-calculated scores
         assert halftime_score_team1 == 1
         assert halftime_score_team2 == 0
         assert team1_score == 2

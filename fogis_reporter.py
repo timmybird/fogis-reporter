@@ -60,7 +60,7 @@ def select_match_interactively(matches):
             if 0 <= match_index < len(matches):
                 selected_match = matches[match_index]
                 print(f"\nSelected: {selected_match['label']}")
-                return
+                return selected_match
             else:
                 print("Invalid match number selected. Please try again.")
         except ValueError:
@@ -1761,6 +1761,7 @@ def _report_match_results_interactively(match_context: MatchContext):
         print("Match result reporting and verification FAILED.")
 
     print("\n--- Match Result Reporting finished ---")
+    return  # Return to report_results_menu
 
 
 def _get_score_input_from_user(
