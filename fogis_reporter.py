@@ -1740,7 +1740,7 @@ def _report_match_results_interactively(match_context: MatchContext):
                 "Match result reporting verified successfully! Fetched scores match"
                 "reported scores."
             )
-            # _mark_reporting_finished_with_error_handling(match_context) # Mark reporting finished - not yet implemented in API Client
+            _mark_reporting_finished_with_error_handling(match_context)  # Mark reporting finished
 
             # --- Example of accessing and displaying fetched scores (optional) ---
             # print("\nFetched Scores from API:")
@@ -1834,8 +1834,9 @@ def _get_score_input_from_user(
 
 
 def _mark_reporting_finished_with_error_handling(match_context: MatchContext):
-    """Prompts for confirmation and marks match reporting as finished with robust" \
-    "error handling.
+    """Prompts for confirmation and marks match reporting as finished with robust
+    error handling. Checks for the 'matchrapportgodkandavdomare' property to verify
+    completion rather than displaying the entire match object.
     """
     # --- Prompt before marking reporting finished ---
     while True:  # Loop until valid input
@@ -1859,18 +1860,23 @@ def _mark_reporting_finished_with_error_handling(match_context: MatchContext):
             match_id
         )  # Call mark_reporting_finished
         if finished_response:
-            print("\nMatch Reporting Marked as Finished Successfully!")
-            print(json.dumps(finished_response, indent=2, ensure_ascii=False))
+            # Check for the matchrapportgodkandavdomare property to verify completion
+            if "matchrapportgodkandavdomare" in finished_response:
+                print("\nMatch Reporting Marked as Finished Successfully!")
+                print(f"Referee confirmation status: {finished_response['matchrapportgodkandavdomare']}")
+            else:
+                print("\nMatch Reporting Marked as Finished Successfully!")
+                print("(No referee confirmation status available in the response)")
         else:
             print(
-                "\nWarning: Failed to mark match reporting as finished (No response"
+                "\nWarning: Failed to mark match reporting as finished (No response "
                 "from API)."
-            )  # Indicate general failure, they need to be explored over time.
+            )
     except Exception as e:  # Catch broad exception for robustness
         print("\nERROR marking match reporting as finished!")
         print(f"Exception details: {e}")  # Print exception details for debugging
         api_error_message = getattr(
-            e, "response", getattr(e, "message", "No API error message" "available")
+            e, "response", getattr(e, "message", "No API error message available")
         )  # Try to extract API error, handle different exception types
         print(f"API Error (if available): {api_error_message}")
 
