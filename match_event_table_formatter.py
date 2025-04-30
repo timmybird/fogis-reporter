@@ -90,6 +90,9 @@ class MatchEventTableFormatter:
             structured_data[category] = {self.team1_name: [], self.team2_name: []}
 
         for event in match_events_json:
+            # Add a reference to all events for looking up related events (for substitutions)
+            event['_all_events'] = match_events_json
+
             event_type_id = event['matchhandelsetypid']
             event_type_name = self.event_types.get(
                 event_type_id,
@@ -116,6 +119,16 @@ class MatchEventTableFormatter:
             elif event_type_name in self.event_categories["Substitutions"]:
                 # Add debug logging for substitution events
                 print(f"\n[DEBUG] Substitution event data: {event}")
+
+                # Check for related event
+                related_event_id = event.get('relateradTillMatchhandelseID')
+                if related_event_id and related_event_id != 0:
+                    print(f"[DEBUG] Related event ID: {related_event_id}")
+                    # Find the related event
+                    for related_event in event.get('_all_events', []):
+                        if related_event.get('matchhandelseid') == related_event_id:
+                            print(f"[DEBUG] Found related event: {related_event}")
+                            break
 
                 player2_jersey_out = self._get_player2_jersey_from_event(
                     event,
@@ -218,26 +231,61 @@ class MatchEventTableFormatter:
                                    team2_players_json: List[Dict[str, Any]]) -> str:
         """Helper function to get player2 jersey number from event data for substitutions.
 
-        First tries to get trojnummer2 directly from the event. If not available,
-        tries to look up the jersey number using spelareid2.
+        For substitutions, we need to find the related event (player leaving the field)
+        using the relateradTillMatchhandelseID property.
         """
-        # First try to get trojnummer2 directly
-        jersey = event.get('trojnummer2')
-        if jersey is not None:
-            return str(jersey)
+        # Check if this is a substitution event with a related event ID
+        related_event_id = event.get('relateradTillMatchhandelseID')
 
-        # If trojnummer2 is not available, try to look up using spelareid2
-        player_id = event.get('spelareid2')
-        if player_id is not None:
-            # Determine which team's players to search
-            players_json = team1_players_json if team_id == self.team1_id else team2_players_json
+        # If there's no related event ID, try the old methods
+        if not related_event_id or related_event_id == 0:
+            # First try to get trojnummer2 directly
+            jersey = event.get('trojnummer2')
+            if jersey is not None:
+                return str(jersey)
 
-            # Look for the player with matching spelareid
-            for player in players_json:
-                if player.get('spelareid') == player_id:
-                    jersey = player.get('trojnummer')
-                    if jersey is not None:
-                        return str(jersey)
+            # If trojnummer2 is not available, try to look up using spelareid2
+            player_id = event.get('spelareid2')
+            if player_id is not None:
+                # Determine which team's players to search
+                players_json = team1_players_json if team_id == self.team1_id else team2_players_json
+
+                # Look for the player with matching spelareid
+                for player in players_json:
+                    if player.get('spelareid') == player_id:
+                        jersey = player.get('trojnummer')
+                        if jersey is not None:
+                            return str(jersey)
+
+            # If all else fails, return N/A
+            return "N/A"
+
+        # If we have a related event ID, find the corresponding event
+        # This is the event for the player leaving the field
+        match_events_json = event.get('_all_events', [])
+        if not match_events_json:
+            return "N/A"
+
+        # Find the related event
+        for related_event in match_events_json:
+            if related_event.get('matchhandelseid') == related_event_id:
+                # Get the jersey number from the related event
+                jersey = related_event.get('trojnummer')
+                if jersey is not None:
+                    return str(jersey)
+
+                # If trojnummer is not available, try to look up using spelareid
+                player_id = related_event.get('spelareid')
+                if player_id is not None:
+                    # Determine which team's players to search
+                    players_json = team1_players_json if team_id == self.team1_id else team2_players_json
+
+                    # Look for the player with matching spelareid
+                    for player in players_json:
+                        if player.get('spelareid') == player_id:
+                            jersey = player.get('trojnummer')
+                            if jersey is not None:
+                                return str(jersey)
 
         # If all else fails, return N/A
         return "N/A"
