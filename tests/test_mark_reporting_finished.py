@@ -19,7 +19,7 @@ sys.modules["match_context"] = MagicMock()
 sys.modules["match_event_table_formatter"] = MagicMock()
 
 # Now we can import from fogis_reporter
-from fogis_reporter import _mark_reporting_finished_with_error_handling
+from fogis_reporter import _mark_reporting_finished_with_error_handling  # noqa: E402
 
 
 # Test for marking reporting as finished with user confirmation
@@ -59,19 +59,19 @@ def test_mark_reporting_finished_with_referee_confirmation():
         return_value={"matchrapportgodkandavdomare": True, "status": "success"}
     )
 
-    # Mock the input function to simulate user confirming
-    with patch("builtins.input", return_value="yes"):
-        # Mock print to check output
-        with patch("builtins.print") as mock_print:
-            # Call the function
-            _mark_reporting_finished_with_error_handling(match_context_mock)
+    # Mock the input function to simulate user confirming and print to check output
+    with patch("builtins.input", return_value="yes"), patch("builtins.print") as mock_print:
+        # Call the function
+        _mark_reporting_finished_with_error_handling(match_context_mock)
 
-            # Check that mark_reporting_finished was called with the correct parameters
-            api_client_mock.mark_reporting_finished.assert_called_once_with(123)
+        # Check that mark_reporting_finished was called with the correct parameters
+        api_client_mock.mark_reporting_finished.assert_called_once_with(123)
 
-            # Check that the referee confirmation status was printed
-            mock_print.assert_any_call("\nMatch Reporting Marked as Finished Successfully!")
-            mock_print.assert_any_call("Referee confirmation status: True")
+        # Check that the referee confirmation status was printed
+        mock_print.assert_any_call(
+            "\nMatch Reporting Marked as Finished Successfully!"
+        )
+        mock_print.assert_any_call("Referee confirmation status: True")
 
 
 # Test for marking reporting as finished without matchrapportgodkandavdomare property
@@ -88,19 +88,21 @@ def test_mark_reporting_finished_without_referee_confirmation():
         return_value={"status": "success"}
     )
 
-    # Mock the input function to simulate user confirming
-    with patch("builtins.input", return_value="yes"):
-        # Mock print to check output
-        with patch("builtins.print") as mock_print:
-            # Call the function
-            _mark_reporting_finished_with_error_handling(match_context_mock)
+    # Mock the input function to simulate user confirming and print to check output
+    with patch("builtins.input", return_value="yes"), patch("builtins.print") as mock_print:
+        # Call the function
+        _mark_reporting_finished_with_error_handling(match_context_mock)
 
-            # Check that mark_reporting_finished was called with the correct parameters
-            api_client_mock.mark_reporting_finished.assert_called_once_with(123)
+        # Check that mark_reporting_finished was called with the correct parameters
+        api_client_mock.mark_reporting_finished.assert_called_once_with(123)
 
-            # Check that the appropriate message was printed
-            mock_print.assert_any_call("\nMatch Reporting Marked as Finished Successfully!")
-            mock_print.assert_any_call("(No referee confirmation status available in the response)")
+        # Check that the appropriate message was printed
+        mock_print.assert_any_call(
+            "\nMatch Reporting Marked as Finished Successfully!"
+        )
+        mock_print.assert_any_call(
+            "(No referee confirmation status available in the response)"
+        )
 
 
 # Test for marking reporting as finished with user cancellation
@@ -182,15 +184,13 @@ def test_mark_reporting_finished_with_empty_input():
         return_value={"status": "success"}
     )
 
-    # Mock the input function to simulate user pressing Enter (empty string)
-    with patch("builtins.input", return_value=""):
-        # Mock print to check output
-        with patch("builtins.print") as mock_print:
-            # Call the function
-            _mark_reporting_finished_with_error_handling(match_context_mock)
+    # Mock the input function to simulate user pressing Enter (empty string) and print to check output
+    with patch("builtins.input", return_value=""), patch("builtins.print") as mock_print:
+        # Call the function
+        _mark_reporting_finished_with_error_handling(match_context_mock)
 
-            # Check that mark_reporting_finished was NOT called
-            api_client_mock.mark_reporting_finished.assert_not_called()
+        # Check that mark_reporting_finished was NOT called
+        api_client_mock.mark_reporting_finished.assert_not_called()
 
-            # Check that the invalid input message was printed
-            mock_print.assert_any_call("Invalid input. Please enter 'yes' or 'no'.")
+        # Check that the invalid input message was printed
+        mock_print.assert_any_call("Invalid input. Please enter 'yes' or 'no'.")

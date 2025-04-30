@@ -1740,7 +1740,8 @@ def _report_match_results_interactively(match_context: MatchContext):
                 "Match result reporting verified successfully! Fetched scores match"
                 "reported scores."
             )
-            _mark_reporting_finished_with_error_handling(match_context)  # Mark reporting finished
+            # Removed call to _mark_reporting_finished_with_error_handling
+            # This feature is implemented but not enabled to avoid unexpected API calls
 
             # --- Example of accessing and displaying fetched scores (optional) ---
             # print("\nFetched Scores from API:")
@@ -1863,7 +1864,9 @@ def _mark_reporting_finished_with_error_handling(match_context: MatchContext):
             # Check for the matchrapportgodkandavdomare property to verify completion
             if "matchrapportgodkandavdomare" in finished_response:
                 print("\nMatch Reporting Marked as Finished Successfully!")
-                print(f"Referee confirmation status: {finished_response['matchrapportgodkandavdomare']}")
+                print(
+                    f"Referee confirmation status: {finished_response['matchrapportgodkandavdomare']}"
+                )
             else:
                 print("\nMatch Reporting Marked as Finished Successfully!")
                 print("(No referee confirmation status available in the response)")
