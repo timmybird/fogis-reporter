@@ -1412,13 +1412,6 @@ def _report_match_results_interactively(match_context: MatchContext):
     reported_scores: Scores = match_context.scores  # Get calculated Scores object from context
 
     print("\n--- Match Result Reporting ---")
-    print(
-        f"Calculated Halftime Score: {team1_name} {reported_scores.halftime.home} -" \
-            "{reported_scores.halftime.away} {team2_name}")
-    print(
-        f"Calculated Fulltime Score: {team1_name}" \
-            "{reported_scores.regular_time.home} - {reported_scores.regular_time.away}" \
-            "{team2_name}")
 
     halftime_score_team1_input, halftime_score_team2_input, fulltime_score_team1_input, fulltime_score_team2_input = _get_score_input_from_user(
         reported_scores.halftime.home, reported_scores.halftime.away, team1_name, team2_name,
@@ -1488,23 +1481,44 @@ def _report_match_results_interactively(match_context: MatchContext):
 
 def _get_score_input_from_user(halftime_score_team1, halftime_score_team2, team1_name, team2_name, team1_score,
                                team2_score):
-    """Gets score input from the user for halftime and fulltime scores."""
+    """Gets score input from the user for halftime and fulltime scores.
+
+    Provides an option to accept all calculated scores at once.
+
+    Args:
+        halftime_score_team1: Calculated halftime score for team 1
+        halftime_score_team2: Calculated halftime score for team 2
+        team1_name: Name of team 1
+        team2_name: Name of team 2
+        team1_score: Calculated fulltime score for team 1
+        team2_score: Calculated fulltime score for team 2
+
+    Returns:
+        Tuple of (halftime_score_team1, halftime_score_team2, fulltime_score_team1, fulltime_score_team2)
+        or (None, None, None, None) if there was an input error
+    """
+    # Display calculated scores for reference
+    print(f"\nCalculated scores:\n")
+    print(f"  Halftime: {team1_name} {halftime_score_team1} - {halftime_score_team2} {team2_name}")
+    print(f"  Fulltime: {team1_name} {team1_score} - {team2_score} {team2_name}")
+
+    # Ask if user wants to accept all calculated scores at once
+    accept_all = input("\nAccept all calculated scores? (y/yes to accept all, n/no for individual input): ")
+
+    if accept_all.lower() in ['y', 'yes']:
+        print("Using all calculated scores.")
+        return halftime_score_team1, halftime_score_team2, team1_score, team2_score
+
+    # If user doesn't want to accept all scores at once, proceed with individual input
+    print("\nEnter scores individually (press Enter to use calculated score):")
     halftime_score_team1_input = input(
-        f"Enter Halftime score for {team1_name} (press Enter to use calculated:" \
-            "{halftime_score_team1}):") or str(
-        halftime_score_team1)
+        f"  Halftime score for {team1_name} [{halftime_score_team1}]: ") or str(halftime_score_team1)
     halftime_score_team2_input = input(
-        f"Enter Halftime score for {team2_name} (press Enter to use calculated:" \
-            "{halftime_score_team2}):") or str(
-        halftime_score_team2)
+        f"  Halftime score for {team2_name} [{halftime_score_team2}]: ") or str(halftime_score_team2)
     fulltime_score_team1_str = input(
-        f"Enter Fulltime score for {team1_name} (press Enter to use calculated:" \
-            "{team1_score}):") or str(
-        team1_score)
+        f"  Fulltime score for {team1_name} [{team1_score}]: ") or str(team1_score)
     fulltime_score_team2_str = input(
-        f"Enter Fulltime score for {team2_name} (press Enter to use calculated:" \
-            "{team2_score}):") or str(
-        team2_score)
+        f"  Fulltime score for {team2_name} [{team2_score}]: ") or str(team2_score)
 
     try:
         halftime_score_team1 = int(halftime_score_team1_input)
