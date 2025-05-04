@@ -746,17 +746,27 @@ def _add_control_event_with_implicit_events(
         event_type_id: int, period: int
     ) -> Optional[Dict[str, Any]]:
         """Find an existing event of the given type and period."""
+        # Print debug information
+        print(f"Looking for event with type {event_type_id} and period {period}")
+        print(f"Current events: {match_context.match_events_json}")
+
         for event in match_context.match_events_json:
             # Check if the required keys exist in the event data
             if "matchhandelsetypid" not in event or "period" not in event:
                 print(f"Warning: Event missing required keys. Available keys: {list(event.keys())}")
                 continue
 
-            if (
-                event["matchhandelsetypid"] == event_type_id
-                and event["period"] == period
-            ):
+            # Convert values to integers for comparison
+            event_type = int(event["matchhandelsetypid"])
+            event_period = int(event["period"])
+
+            print(f"Checking event: type={event_type}, period={event_period}")
+
+            if event_type == event_type_id and event_period == period:
+                print(f"Found matching event: {event}")
                 return dict(event)
+
+        print(f"No matching event found for type {event_type_id} and period {period}")
         return None
 
     def _report_event_to_api(
@@ -888,7 +898,8 @@ def _add_control_event_with_implicit_events(
                 "matchdeltagareid": 0,
                 "matchdeltagareid2": 0,
                 "fotbollstypId": 1,
-                "relateradTillMatchhandelseID" "hemmamal": team1_score,
+                "relateradTillMatchhandelseID": 0,
+                "hemmamal": team1_score,
                 "bortamal": team2_score,
             }
             print(
