@@ -741,6 +741,11 @@ def _add_control_event_with_implicit_events(
     ) -> Optional[Dict[str, Any]]:
         """Find an existing event of the given type and period."""
         for event in match_context.match_events_json:
+            # Check if the required keys exist in the event data
+            if "matchhandelsetypid" not in event or "period" not in event:
+                print(f"Warning: Event missing required keys. Available keys: {list(event.keys())}")
+                continue
+
             if (
                 event["matchhandelsetypid"] == event_type_id
                 and event["period"] == period
@@ -805,7 +810,8 @@ def _add_control_event_with_implicit_events(
                 "matchdeltagareid": 0,
                 "matchdeltagareid2": 0,
                 "fotbollstypId": 1,
-                "relateradTillMatchhandelseID" "hemmamal": team1_score,
+                "relateradTillMatchhandelseID": 0,
+                "hemmamal": team1_score,
                 "bortamal": team2_score,
             }
             print(f"  Creating new Period Start event for period {period}")
@@ -914,7 +920,8 @@ def _add_control_event_with_implicit_events(
                 "matchdeltagareid": 0,
                 "matchdeltagareid2": 0,
                 "fotbollstypId": 1,
-                "relateradTillMatchhandelseID" "hemmamal": team1_score,
+                "relateradTillMatchhandelseID": 0,
+                "hemmamal": team1_score,
                 "bortamal": team2_score,
             }
             print(
@@ -1596,7 +1603,7 @@ def _get_event_details_from_input(
                 current_team_players_json = (
                     team1_players_json if team_number == 1 else team2_players_json
                 )
-                return None
+                return None, None, None, None, None, None
             if event_category == "4":  # Team Official Action
                 # Handle Team Official Action
                 event_choice_str = ""
@@ -1614,6 +1621,7 @@ def _get_event_details_from_input(
                         team1_players_json if team_number == 1 else team2_players_json
                     )
                     return (
+                        team_number,
                         selected_event_type,
                         event_type_id,
                         event_type_name,
@@ -1622,7 +1630,7 @@ def _get_event_details_from_input(
                     )
                 else:
                     print("Team Official Action event type not found.")
-                    return None, None, None, False, None
+                    return None, None, None, None, None, None
 
             # Original behavior - show all event types
             print("\nSelect Event Type:")
@@ -1648,6 +1656,7 @@ def _get_event_details_from_input(
                     team1_players_json if team_number == 1 else team2_players_json
                 )
                 return (
+                    team_number,
                     selected_event_type,
                     event_type_id,
                     event_type_name,
@@ -1656,14 +1665,14 @@ def _get_event_details_from_input(
                 )
             else:
                 print("Invalid event type number selected.")
-                return None, None, None, False, None
+                return None, None, None, None, None, None
         else:
             print("Invalid input. Please enter a number for event type.")
-            return None, None, None, False, None  # Indicate invalid input
+            return None, None, None, None, None, None  # Indicate invalid input
 
     except ValueError:
         print("Invalid input. Please enter 1, 2, 'done', or 'clear'.")
-        return None, None, None, False, None  # Indicate invalid input
+        return None, None, None, None, None, None  # Indicate invalid input
 
 
 def _report_match_results_interactively(match_context: MatchContext):
