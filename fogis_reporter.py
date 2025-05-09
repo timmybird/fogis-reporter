@@ -131,7 +131,7 @@ def display_main_menu(match_context: MatchContext):
         print(f"  MATCH: {match_context.team1_name} vs {match_context.team2_name}")
         print(
             f"CURRENT SCORE: {match_context.team1_name} {scores.regular_time.home} -"
-            "{scores.regular_time.away} {match_context.team2_name}"
+            f"{scores.regular_time.away} {match_context.team2_name}"
         )
         print("=" * 60)
 
@@ -608,7 +608,7 @@ def report_results_menu(match_context: MatchContext):
 
         print(
             f"CURRENT SCORE: {match_context.team1_name} {scores.regular_time.home} -"
-            "{scores.regular_time.away} {match_context.team2_name}"
+            f"{scores.regular_time.away} {match_context.team2_name}"
         )
         print("=" * 60)
 
@@ -1096,7 +1096,7 @@ def _report_substitution_event(
         "period": period,
         "matchminut": minute,
         "sekund": 0,
-        "matchhandelsetypid": EVENT_TYPES[17],  # Substitution event type ID (17)
+        "matchhandelsetypid": 17,  # Substitution event type ID (17)
         "matchlagid": game_team_id,
         "spelareid": int(player_id_in),
         "spelareid2": int(player_id_out),
@@ -1115,7 +1115,16 @@ def _report_substitution_event(
     }
 
     try:
+        # Debug: Print the event data being sent to the API
+        print("\nDEBUG - Sending substitution event data to API:")
+        print(json.dumps(event_data, indent=2, ensure_ascii=False))
+
         report_response = api_client.report_match_event(event_data)
+
+        # Debug: Print the API response
+        print("\nDEBUG - API Response:")
+        print(json.dumps(report_response, indent=2, ensure_ascii=False) if report_response else "None")
+
         if report_response:
             print("\nMatch Event Report Response (Substitution):")
             print("Event Type: Substitution")
@@ -1131,8 +1140,9 @@ def _report_substitution_event(
                 else None
             )
         return None
-    except Exception:
+    except Exception as e:
         print("\nFailed to report substitution event.")
+        print(f"DEBUG - Exception details: {type(e).__name__}: {str(e)}")
         return None  # Indicate failure
 
 
@@ -1161,7 +1171,11 @@ def _report_team_official_action_event(
         return None  # Indicate failure
 
     action_data = {
-        "matchlagledareid": team_official_id,
+        "matchid": match_id,  # Required field
+        "matchlagledareid": team_official_id,  # Required field
+        "matchlagid": match_context.team1_id,  # Required field - using team1_id as default
+        "matchlagledaretypid": 1,  # Required field - using 1 (Yellow Card) as default
+        "matchminut": avvisadmatchminut,  # Optional field
         "lagrollid": lagrollid,
         "avvisadmatchminut": avvisadmatchminut,
         "avvisadlindrig": avvisadlindrig,
@@ -1171,7 +1185,16 @@ def _report_team_official_action_event(
     }
 
     try:
+        # Debug: Print the action data being sent to the API
+        print("\nDEBUG - Sending team official action data to API:")
+        print(json.dumps(action_data, indent=2, ensure_ascii=False))
+
         report_response = api_client.report_team_official_action(action_data)
+
+        # Debug: Print the API response
+        print("\nDEBUG - API Response:")
+        print(json.dumps(report_response, indent=2, ensure_ascii=False) if report_response else "None")
+
         if report_response:
             print("\nTeam Official Action Report Response:")
             print("Event Type: Team Official Action")
@@ -1187,8 +1210,9 @@ def _report_team_official_action_event(
                 else None
             )
         return None
-    except Exception:
+    except Exception as e:
         print("\nFailed to report team official action.")
+        print(f"DEBUG - Exception details: {type(e).__name__}: {str(e)}")
         return None  # Indicate failure
 
 
@@ -1358,14 +1382,22 @@ def _report_goal_with_smart_input(
 
     # Report the event
     try:
+        # Debug: Print the event data being sent to the API
+        print("\nDEBUG - Sending event data to API:")
+        print(json.dumps(event_data, indent=2, ensure_ascii=False))
+
         api_response = api_client.report_match_event(event_data)
+
+        # Debug: Print the API response
+        print("\nDEBUG - API Response:")
+        print(json.dumps(api_response, indent=2, ensure_ascii=False) if api_response else "None")
+
         if api_response is None:
             print(f"Error reporting {event_type_name} for player #{jersey_number_int}.")
             return None
 
         print(
-            f"{event_type_name} reported for player #{jersey_number_int} at minute"
-            "{minute}."
+            f"{event_type_name} reported for player #{jersey_number_int} at minute {minute}."
         )
         match_events_json: Optional[List[Dict[str, Any]]] = safe_fetch_json_list(
             api_client.fetch_match_events_json, match_id
@@ -1484,7 +1516,16 @@ def _report_player_event(
         event_data["bortamal"] = team2_score
 
     try:
+        # Debug: Print the event data being sent to the API
+        print("\nDEBUG - Sending player event data to API:")
+        print(json.dumps(event_data, indent=2, ensure_ascii=False))
+
         report_response = api_client.report_match_event(event_data)
+
+        # Debug: Print the API response
+        print("\nDEBUG - API Response:")
+        print(json.dumps(report_response, indent=2, ensure_ascii=False) if report_response else "None")
+
         if report_response:
             print("\nMatch Event Report Response:")
             print(f"Event Type: {event_type_name}")
@@ -1500,8 +1541,9 @@ def _report_player_event(
                 else None
             )
         return None
-    except Exception:
+    except Exception as e:
         print("\nFailed to report match event.")
+        print(f"DEBUG - Exception details: {type(e).__name__}: {str(e)}")
         return None  # Indicate failure
 
 
