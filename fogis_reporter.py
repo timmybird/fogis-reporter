@@ -1634,6 +1634,34 @@ def _get_event_details_from_input(
                         and "Card" in event_type["name"]
                     ):
                         print(f"{event_type_id}: {event_type['name']}")
+
+                # Get card selection from user
+                event_choice_str = input("Enter card type number:")
+
+                if event_choice_str.isdigit():
+                    event_choice = int(event_choice_str)
+                    if event_choice in EVENT_TYPES and "Card" in EVENT_TYPES[event_choice]["name"]:
+                        selected_event_type = EVENT_TYPES[event_choice]
+                        event_type_id = event_choice
+                        event_type_name = selected_event_type["name"]
+                        is_goal_event = selected_event_type.get("goal", False)
+                        current_team_players_json = (
+                            team1_players_json if team_number == 1 else team2_players_json
+                        )
+                        return (
+                            team_number,
+                            selected_event_type,
+                            event_type_id,
+                            event_type_name,
+                            is_goal_event,
+                            current_team_players_json,
+                        )
+                    else:
+                        print(f"Invalid card type: {event_choice_str}")
+                        return None, None, None, None, None, None
+                else:
+                    print(f"Invalid input: {event_choice_str}")
+                    return None, None, None, None, None, None
             elif event_category == "3":  # Substitution
                 print("\nSubstitution Selected")
                 event_choice_str = "17"  # Hardcode to Substitution event type
@@ -1645,7 +1673,14 @@ def _get_event_details_from_input(
                 current_team_players_json = (
                     team1_players_json if team_number == 1 else team2_players_json
                 )
-                return None, None, None, None, None, None
+                return (
+                    team_number,
+                    selected_event_type,
+                    event_type_id,
+                    event_type_name,
+                    is_goal_event,
+                    current_team_players_json,
+                )
             if event_category == "4":  # Team Official Action
                 # Handle Team Official Action
                 event_choice_str = ""
@@ -1674,13 +1709,14 @@ def _get_event_details_from_input(
                     print("Team Official Action event type not found.")
                     return None, None, None, None, None, None
 
-            # Original behavior - show all event types
+        # If no specific category handling above, or no category specified, show all event types
+        if not event_category or event_category not in ["2", "3", "4"]:
             print("\nSelect Event Type:")
             for event_type_id, event_type in EVENT_TYPES.items():
                 if not event_type.get("control_event") and event_type_id is not None:
                     print(f"{event_type_id}: {event_type['name']}")
 
-        # For card events or when no category is specified
+        # Get event type from user
         event_choice_str = input("Enter event type number:")
 
         if event_choice_str.isdigit():
