@@ -60,7 +60,9 @@ def test_mark_reporting_finished_with_referee_confirmation():
     )
 
     # Mock the input function to simulate user confirming and print to check output
-    with patch("builtins.input", return_value="yes"), patch("builtins.print") as mock_print:
+    with patch("builtins.input", return_value="yes"), patch(
+        "builtins.print"
+    ) as mock_print:
         # Call the function
         _mark_reporting_finished_with_error_handling(match_context_mock)
 
@@ -68,9 +70,7 @@ def test_mark_reporting_finished_with_referee_confirmation():
         api_client_mock.mark_reporting_finished.assert_called_once_with(123)
 
         # Check that the referee confirmation status was printed
-        mock_print.assert_any_call(
-            "\nMatch Reporting Marked as Finished Successfully!"
-        )
+        mock_print.assert_any_call("\nMatch Reporting Marked as Finished Successfully!")
         mock_print.assert_any_call("Referee confirmation status: True")
 
 
@@ -89,7 +89,9 @@ def test_mark_reporting_finished_without_referee_confirmation():
     )
 
     # Mock the input function to simulate user confirming and print to check output
-    with patch("builtins.input", return_value="yes"), patch("builtins.print") as mock_print:
+    with patch("builtins.input", return_value="yes"), patch(
+        "builtins.print"
+    ) as mock_print:
         # Call the function
         _mark_reporting_finished_with_error_handling(match_context_mock)
 
@@ -97,9 +99,7 @@ def test_mark_reporting_finished_without_referee_confirmation():
         api_client_mock.mark_reporting_finished.assert_called_once_with(123)
 
         # Check that the appropriate message was printed
-        mock_print.assert_any_call(
-            "\nMatch Reporting Marked as Finished Successfully!"
-        )
+        mock_print.assert_any_call("\nMatch Reporting Marked as Finished Successfully!")
         mock_print.assert_any_call(
             "(No referee confirmation status available in the response)"
         )
@@ -185,7 +185,9 @@ def test_mark_reporting_finished_with_empty_input():
     )
 
     # Mock the input function to simulate user pressing Enter (empty string) and print to check output
-    with patch("builtins.input", return_value=""), patch("builtins.print") as mock_print:
+    with patch("builtins.input", return_value=""), patch(
+        "builtins.print"
+    ) as mock_print:
         # Call the function
         _mark_reporting_finished_with_error_handling(match_context_mock)
 

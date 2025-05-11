@@ -17,10 +17,16 @@ def base_match_context():
     """Fixture to create a base MatchContext object for testing."""
     api_client_mock = MagicMock(spec=FogisApiClient)
     selected_match_data = {
-        "matchid": 123, "lag1namn": "Team 1 Test", "lag2namn": "Team 2 Test",
-        "matchlag1id": 1, "matchlag2id": 2, "label": "Test Match",
-        "antalhalvlekar": 2, "tidperhalvlek": 45, "antalforlangningsperioder": 0,
-        "tidperforlangningsperiod": 0
+        "matchid": 123,
+        "lag1namn": "Team 1 Test",
+        "lag2namn": "Team 2 Test",
+        "matchlag1id": 1,
+        "matchlag2id": 2,
+        "label": "Test Match",
+        "antalhalvlekar": 2,
+        "tidperhalvlek": 45,
+        "antalforlangningsperioder": 0,
+        "tidperforlangningsperiod": 0,
     }
     team1_players_data = [{"spelareid": 100, "trojnummer": 1, "matchdeltagareid": 1000}]
     team2_players_data = [{"spelareid": 200, "trojnummer": 2, "matchdeltagareid": 2000}]
@@ -40,7 +46,7 @@ def base_match_context():
         team2_name=selected_match_data["lag2namn"],
         team1_id=selected_match_data["matchlag1id"],
         team2_id=selected_match_data["matchlag2id"],
-        match_id=selected_match_data["matchid"]
+        match_id=selected_match_data["matchid"],
     )
 
 
@@ -52,7 +58,7 @@ def test_report_match_events_done_input(mocker, capsys, base_match_context):
     match_context.team2_name = "Team 2"
 
     # 2. Mock Dependencies (we only need input here; the api client is in the fixture)
-    mocker.patch("builtins.input", side_effect=['', ''])
+    mocker.patch("builtins.input", side_effect=["", ""])
 
     # 3. Call report_match_events_menu with the MatchContext
     report_match_events_menu(match_context)
@@ -75,7 +81,7 @@ def test_report_match_events_clear_input(mocker, capsys, base_match_context):
     match_context.team2_name = "Team 2"
 
     # 2. Mock Dependencies
-    mocker.patch("builtins.input", side_effect=['3', 'clear', ''])
+    mocker.patch("builtins.input", side_effect=["3", "clear", ""])
     mocker.patch("fogis_reporter._display_current_events_table")
 
     # 3. Call report_match_events_menu with the MatchContext
@@ -114,7 +120,7 @@ def test_report_team_event(mocker, capsys, base_match_context):
     participant_id_mock.return_value = 1000
 
     # Mock input for jersey number and minute
-    mocker.patch("builtins.input", side_effect=['1', '1'])
+    mocker.patch("builtins.input", side_effect=["1", "1"])
 
     # Mock event types
     event_types_mock = {6: {"name": "Goal", "goal": True}}
@@ -137,6 +143,7 @@ def test_report_team_event(mocker, capsys, base_match_context):
     # 3. Import and call report_team_event
     # Import the function we're testing
     from fogis_reporter import report_team_event  # noqa: E402
+
     report_team_event(match_context, 1)
 
     # 4. Assertions

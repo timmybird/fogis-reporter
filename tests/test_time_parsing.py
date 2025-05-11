@@ -1,21 +1,23 @@
-import pytest
-from unittest.mock import MagicMock, patch
 import sys
+from unittest.mock import MagicMock
+
+import pytest
 
 # Mock the fogis_api_client module
-sys.modules['fogis_api_client'] = MagicMock()
-sys.modules['fogis_api_client.fogis_api_client'] = MagicMock()
-sys.modules['fogis_api_client.fogis_api_client'].FogisApiClient = MagicMock
-sys.modules['fogis_api_client.fogis_api_client'].EVENT_TYPES = {}
-sys.modules['fogis_api_client.fogis_api_client'].FogisLoginError = Exception
+sys.modules["fogis_api_client"] = MagicMock()
+sys.modules["fogis_api_client.fogis_api_client"] = MagicMock()
+sys.modules["fogis_api_client.fogis_api_client"].FogisApiClient = MagicMock
+sys.modules["fogis_api_client.fogis_api_client"].EVENT_TYPES = {}
+sys.modules["fogis_api_client.fogis_api_client"].FogisLoginError = Exception
 
 # Mock other dependencies
-sys.modules['fogis_data_parser'] = MagicMock()
-sys.modules['match_context'] = MagicMock()
-sys.modules['match_event_table_formatter'] = MagicMock()
+sys.modules["fogis_data_parser"] = MagicMock()
+sys.modules["match_context"] = MagicMock()
+sys.modules["match_event_table_formatter"] = MagicMock()
 
 # Now we can import from fogis_reporter
 from fogis_reporter import _parse_minute_input
+
 
 # Test regular time input
 def test_parse_regular_time():
@@ -40,6 +42,7 @@ def test_parse_regular_time():
     assert minute == 90
     assert period == 2
 
+
 # Test stoppage time input
 def test_parse_stoppage_time():
     """Test parsing stoppage time input."""
@@ -57,6 +60,7 @@ def test_parse_stoppage_time():
     minute, period = _parse_minute_input("90+2", 2, 45, 0, 15)
     assert minute == 92
     assert period == 2
+
 
 # Test extra time input
 def test_parse_extra_time():
@@ -80,6 +84,7 @@ def test_parse_extra_time():
     minute, period = _parse_minute_input("120", 2, 45, 2, 15)
     assert minute == 120
     assert period == 4
+
 
 # Test invalid time input
 def test_parse_invalid_time():
@@ -114,6 +119,7 @@ def test_parse_invalid_time():
     # Commenting out for now as it's not critical
     # with pytest.raises(ValueError):
     #     _parse_minute_input("44+1", 2, 45, 0, 15)
+
 
 # Test boundary conditions
 def test_parse_boundary_conditions():

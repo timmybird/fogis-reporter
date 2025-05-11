@@ -1,5 +1,5 @@
-import pytest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
+
 
 # Test for updating existing Period End events
 def test_update_existing_period_end():
@@ -13,9 +13,9 @@ def test_update_existing_period_end():
 
     # Create a mock existing Period End event
     existing_event = {
-        'matchhandelseid': 456,
-        'matchhandelsetypid': 32,  # Period End
-        'period': 2
+        "matchhandelseid": 456,
+        "matchhandelsetypid": 32,  # Period End
+        "period": 2,
     }
 
     # Set up the match_events_json to include the existing event
@@ -23,15 +23,15 @@ def test_update_existing_period_end():
 
     # Create a control event for Period End
     control_event = {
-        'matchhandelseid': 0,  # New event
-        'matchid': 123,
-        'period': 2,
-        'matchminut': 90,
-        'sekund': 0,
-        'matchhandelsetypid': 32,  # Period End
-        'matchlagid': 0,
-        'hemmamal': 1,
-        'bortamal': 1
+        "matchhandelseid": 0,  # New event
+        "matchid": 123,
+        "period": 2,
+        "matchminut": 90,
+        "sekund": 0,
+        "matchhandelsetypid": 32,  # Period End
+        "matchlagid": 0,
+        "hemmamal": 1,
+        "bortamal": 1,
     }
 
     # Import the function we want to test
@@ -39,7 +39,7 @@ def test_update_existing_period_end():
 
     # Call the function with our mock context and control event
     # Configure the mock to return a successful response
-    api_client_mock.report_match_event.return_value = [{'success': True}]
+    api_client_mock.report_match_event.return_value = [{"success": True}]
 
     # Call the function
     _add_control_event_with_implicit_events(control_event, match_context_mock)
@@ -47,9 +47,10 @@ def test_update_existing_period_end():
     # Check that the function tried to update the existing event
     # The first call to the mock should be with an event that has the existing event ID
     call_args = api_client_mock.report_match_event.call_args[0][0]
-    assert call_args['matchhandelseid'] == 456
-    assert call_args['matchhandelsetypid'] == 32
-    assert call_args['period'] == 2
+    assert call_args["matchhandelseid"] == 456
+    assert call_args["matchhandelsetypid"] == 32
+    assert call_args["period"] == 2
+
 
 # Test for creating new Period End events when none exist
 def test_create_new_period_end():
@@ -66,15 +67,15 @@ def test_create_new_period_end():
 
     # Create a control event for Period End
     control_event = {
-        'matchhandelseid': 0,  # New event
-        'matchid': 123,
-        'period': 2,
-        'matchminut': 90,
-        'sekund': 0,
-        'matchhandelsetypid': 32,  # Period End
-        'matchlagid': 0,
-        'hemmamal': 1,
-        'bortamal': 1
+        "matchhandelseid": 0,  # New event
+        "matchid": 123,
+        "period": 2,
+        "matchminut": 90,
+        "sekund": 0,
+        "matchhandelsetypid": 32,  # Period End
+        "matchlagid": 0,
+        "hemmamal": 1,
+        "bortamal": 1,
     }
 
     # Import the function we want to test
@@ -82,7 +83,7 @@ def test_create_new_period_end():
 
     # Call the function with our mock context and control event
     # Configure the mock to return a successful response
-    api_client_mock.report_match_event.return_value = [{'success': True}]
+    api_client_mock.report_match_event.return_value = [{"success": True}]
 
     # Call the function
     _add_control_event_with_implicit_events(control_event, match_context_mock)
@@ -93,12 +94,12 @@ def test_create_new_period_end():
 
     # The first call should be for Period Start
     first_call_args = api_client_mock.report_match_event.call_args_list[0][0][0]
-    assert first_call_args['matchhandelseid'] == 0  # New event
-    assert first_call_args['matchhandelsetypid'] == 31  # Period Start
-    assert first_call_args['period'] == 2
+    assert first_call_args["matchhandelseid"] == 0  # New event
+    assert first_call_args["matchhandelsetypid"] == 31  # Period Start
+    assert first_call_args["period"] == 2
 
     # The second call should be for Period End
     second_call_args = api_client_mock.report_match_event.call_args_list[1][0][0]
-    assert second_call_args['matchhandelseid'] == 0  # New event
-    assert second_call_args['matchhandelsetypid'] == 32  # Period End
-    assert second_call_args['period'] == 2
+    assert second_call_args["matchhandelseid"] == 0  # New event
+    assert second_call_args["matchhandelsetypid"] == 32  # Period End
+    assert second_call_args["period"] == 2

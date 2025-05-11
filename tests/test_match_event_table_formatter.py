@@ -5,9 +5,9 @@ This module tests the MatchEventTableFormatter class.
 
 from unittest.mock import patch
 
-from match_event_table_formatter import MatchEventTableFormatter
-
 import pytest
+
+from match_event_table_formatter import MatchEventTableFormatter
 
 
 class TestMatchEventTableFormatter:
