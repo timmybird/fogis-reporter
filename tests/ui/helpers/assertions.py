@@ -94,14 +94,10 @@ def assert_failure(result: CLIResult) -> None:
     Raises:
         AssertionError: If the command did not fail
     """
-    assert (
-        result.exit_code != 0
-    ), f"Expected non-zero exit code, but got {result.exit_code}"
+    assert result.exit_code != 0, f"Expected non-zero exit code, but got {result.exit_code}"
 
 
-def assert_menu_contains(
-    result: CLIResult, menu_title: str, options: List[str]
-) -> None:
+def assert_menu_contains(result: CLIResult, menu_title: str, options: List[str]) -> None:
     """Assert that the output contains a menu with the given title and options.
 
     Args:

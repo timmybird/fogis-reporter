@@ -58,9 +58,7 @@ class CLIRunner:
         self.timeout = timeout
         self.env = env or {}
 
-    def run_with_input(
-        self, inputs: List[str], env: Optional[dict] = None
-    ) -> CLIResult:
+    def run_with_input(self, inputs: List[str], env: Optional[dict] = None) -> CLIResult:
         """Run the CLI with the given inputs.
 
         Args:
