@@ -1,21 +1,21 @@
-import pytest
-from unittest.mock import MagicMock, patch
 import sys
+from unittest.mock import MagicMock, patch
 
 # Mock the fogis_api_client module
-sys.modules['fogis_api_client'] = MagicMock()
-sys.modules['fogis_api_client.fogis_api_client'] = MagicMock()
-sys.modules['fogis_api_client.fogis_api_client'].FogisApiClient = MagicMock
-sys.modules['fogis_api_client.fogis_api_client'].EVENT_TYPES = {}
-sys.modules['fogis_api_client.fogis_api_client'].FogisLoginError = Exception
+sys.modules["fogis_api_client"] = MagicMock()
+sys.modules["fogis_api_client.fogis_api_client"] = MagicMock()
+sys.modules["fogis_api_client.fogis_api_client"].FogisApiClient = MagicMock
+sys.modules["fogis_api_client.fogis_api_client"].EVENT_TYPES = {}
+sys.modules["fogis_api_client.fogis_api_client"].FogisLoginError = Exception
 
 # Mock other dependencies
-sys.modules['fogis_data_parser'] = MagicMock()
-sys.modules['match_context'] = MagicMock()
-sys.modules['match_event_table_formatter'] = MagicMock()
+sys.modules["fogis_data_parser"] = MagicMock()
+sys.modules["match_context"] = MagicMock()
+sys.modules["match_event_table_formatter"] = MagicMock()
 
 # Now we can import from fogis_reporter
-from fogis_reporter import report_team_event, _get_event_details_from_input
+from fogis_reporter import _get_event_details_from_input, report_team_event
+
 
 # Test for getting event details from input
 def test_get_event_details_from_input_valid():
@@ -27,7 +27,7 @@ def test_get_event_details_from_input_valid():
         8: {"name": "Red Card"},
         9: {"name": "Substitution"},
         10: {"name": "Team Official Action"},
-        23: {"name": "Game End", "control_event": True}  # This should be skipped
+        23: {"name": "Game End", "control_event": True},  # This should be skipped
     }
 
     # Mock team players
@@ -35,9 +35,16 @@ def test_get_event_details_from_input_valid():
     team2_players_mock = [{"spelareid": 200, "trojnummer": 1, "matchdeltagareid": 2000}]
 
     # Test with team 1 and goal event
-    with patch('fogis_reporter.EVENT_TYPES', event_types_mock):
-        with patch('builtins.input', return_value='6'):  # Select Goal event
-            team_number, selected_event_type, event_type_id, event_type_name, is_goal_event, current_team_players_json = _get_event_details_from_input(
+    with patch("fogis_reporter.EVENT_TYPES", event_types_mock):
+        with patch("builtins.input", return_value="6"):  # Select Goal event
+            (
+                team_number,
+                selected_event_type,
+                event_type_id,
+                event_type_name,
+                is_goal_event,
+                current_team_players_json,
+            ) = _get_event_details_from_input(
                 "1", team1_players_mock, team2_players_mock
             )
 
@@ -49,6 +56,7 @@ def test_get_event_details_from_input_valid():
             assert is_goal_event == True
             assert current_team_players_json == team1_players_mock
 
+
 # Test for getting event details with invalid team number
 def test_get_event_details_from_input_invalid_team():
     """Test getting event details with invalid team number."""
@@ -57,9 +65,14 @@ def test_get_event_details_from_input_invalid_team():
     team2_players_mock = [{"spelareid": 200, "trojnummer": 1, "matchdeltagareid": 2000}]
 
     # Test with invalid team number
-    team_number, selected_event_type, event_type_id, event_type_name, is_goal_event, current_team_players_json = _get_event_details_from_input(
-        "3", team1_players_mock, team2_players_mock
-    )
+    (
+        team_number,
+        selected_event_type,
+        event_type_id,
+        event_type_name,
+        is_goal_event,
+        current_team_players_json,
+    ) = _get_event_details_from_input("3", team1_players_mock, team2_players_mock)
 
     # Check that all returned values are None
     assert team_number is None
@@ -68,6 +81,7 @@ def test_get_event_details_from_input_invalid_team():
     assert event_type_name is None
     assert is_goal_event is None
     assert current_team_players_json is None
+
 
 # Test for getting event details with 'done' input
 def test_get_event_details_from_input_done():
@@ -77,9 +91,14 @@ def test_get_event_details_from_input_done():
     team2_players_mock = [{"spelareid": 200, "trojnummer": 1, "matchdeltagareid": 2000}]
 
     # Test with 'done' input
-    team_number, selected_event_type, event_type_id, event_type_name, is_goal_event, current_team_players_json = _get_event_details_from_input(
-        "done", team1_players_mock, team2_players_mock
-    )
+    (
+        team_number,
+        selected_event_type,
+        event_type_id,
+        event_type_name,
+        is_goal_event,
+        current_team_players_json,
+    ) = _get_event_details_from_input("done", team1_players_mock, team2_players_mock)
 
     # Check that all returned values are None
     assert team_number is None
@@ -89,23 +108,28 @@ def test_get_event_details_from_input_done():
     assert is_goal_event is None
     assert current_team_players_json is None
 
+
 # Test for getting event details with invalid event type
 def test_get_event_details_from_input_invalid_event():
     """Test getting event details with invalid event type."""
     # Mock event_types
-    event_types_mock = {
-        6: {"name": "Goal", "goal": True},
-        7: {"name": "Yellow Card"}
-    }
+    event_types_mock = {6: {"name": "Goal", "goal": True}, 7: {"name": "Yellow Card"}}
 
     # Mock team players
     team1_players_mock = [{"spelareid": 100, "trojnummer": 1, "matchdeltagareid": 1000}]
     team2_players_mock = [{"spelareid": 200, "trojnummer": 1, "matchdeltagareid": 2000}]
 
     # Test with valid team but invalid event type
-    with patch('fogis_reporter.EVENT_TYPES', event_types_mock):
-        with patch('builtins.input', return_value='99'):  # Select invalid event
-            team_number, selected_event_type, event_type_id, event_type_name, is_goal_event, current_team_players_json = _get_event_details_from_input(
+    with patch("fogis_reporter.EVENT_TYPES", event_types_mock):
+        with patch("builtins.input", return_value="99"):  # Select invalid event
+            (
+                team_number,
+                selected_event_type,
+                event_type_id,
+                event_type_name,
+                is_goal_event,
+                current_team_players_json,
+            ) = _get_event_details_from_input(
                 "1", team1_players_mock, team2_players_mock
             )
 
@@ -116,6 +140,7 @@ def test_get_event_details_from_input_invalid_event():
             assert event_type_name is None
             assert is_goal_event is None
             assert current_team_players_json is None
+
 
 # Test for reporting a goal event
 def test_report_team_event_goal():
@@ -134,28 +159,46 @@ def test_report_team_event_goal():
     scores_mock.regular_time.away = 0
 
     # Mock _get_event_details_from_input
-    event_details_mock = (1, {"name": "Goal", "goal": True}, 6, "Goal", True, [{"spelareid": 100, "trojnummer": 1, "matchdeltagareid": 1000}])
+    event_details_mock = (
+        1,
+        {"name": "Goal", "goal": True},
+        6,
+        "Goal",
+        True,
+        [{"spelareid": 100, "trojnummer": 1, "matchdeltagareid": 1000}],
+    )
 
     # Mock _report_player_event
     report_player_event_mock = MagicMock(return_value=[{"matchhandelseid": 123}])
 
     # Patch the necessary functions
-    with patch('fogis_reporter.FogisDataParser.calculate_scores', return_value=scores_mock):
-        with patch('fogis_reporter._get_event_details_from_input', return_value=event_details_mock):
-            with patch('fogis_reporter._report_player_event', report_player_event_mock):
-                with patch('fogis_reporter._display_current_events_table'):
+    with patch(
+        "fogis_reporter.FogisDataParser.calculate_scores", return_value=scores_mock
+    ):
+        with patch(
+            "fogis_reporter._get_event_details_from_input",
+            return_value=event_details_mock,
+        ):
+            with patch("fogis_reporter._report_player_event", report_player_event_mock):
+                with patch("fogis_reporter._display_current_events_table"):
                     # Call the function
                     report_team_event(match_context_mock, 1)
 
                     # Check that _report_player_event was called with the correct parameters
                     report_player_event_mock.assert_called_once_with(
-                        match_context_mock, 1, {"name": "Goal", "goal": True},
+                        match_context_mock,
+                        1,
+                        {"name": "Goal", "goal": True},
                         [{"spelareid": 100, "trojnummer": 1, "matchdeltagareid": 1000}],
-                        1, 0
+                        1,
+                        0,
                     )
 
                     # Check that match_context.match_events_json was updated
-                    assert match_context_mock.match_events_json == [{"matchhandelseid": 123}]
+                    assert match_context_mock.match_events_json == [
+                        {"matchhandelseid": 123}
+                    ]
+
 
 # Test for reporting a substitution event
 def test_report_team_event_substitution():
@@ -174,28 +217,48 @@ def test_report_team_event_substitution():
     scores_mock.regular_time.away = 0
 
     # Mock _get_event_details_from_input
-    event_details_mock = (1, {"name": "Substitution"}, 9, "Substitution", False, [{"spelareid": 100, "trojnummer": 1, "matchdeltagareid": 1000}])
+    event_details_mock = (
+        1,
+        {"name": "Substitution"},
+        9,
+        "Substitution",
+        False,
+        [{"spelareid": 100, "trojnummer": 1, "matchdeltagareid": 1000}],
+    )
 
     # Mock _report_substitution_event
     report_substitution_event_mock = MagicMock(return_value=[{"matchhandelseid": 123}])
 
     # Patch the necessary functions
-    with patch('fogis_reporter.FogisDataParser.calculate_scores', return_value=scores_mock):
-        with patch('fogis_reporter._get_event_details_from_input', return_value=event_details_mock):
-            with patch('fogis_reporter._report_substitution_event', report_substitution_event_mock):
-                with patch('fogis_reporter._display_current_events_table'):
+    with patch(
+        "fogis_reporter.FogisDataParser.calculate_scores", return_value=scores_mock
+    ):
+        with patch(
+            "fogis_reporter._get_event_details_from_input",
+            return_value=event_details_mock,
+        ):
+            with patch(
+                "fogis_reporter._report_substitution_event",
+                report_substitution_event_mock,
+            ):
+                with patch("fogis_reporter._display_current_events_table"):
                     # Call the function
                     report_team_event(match_context_mock, 1)
 
                     # Check that _report_substitution_event was called with the correct parameters
                     report_substitution_event_mock.assert_called_once_with(
-                        match_context_mock, 1,
+                        match_context_mock,
+                        1,
                         [{"spelareid": 100, "trojnummer": 1, "matchdeltagareid": 1000}],
-                        1, 0
+                        1,
+                        0,
                     )
 
                     # Check that match_context.match_events_json was updated
-                    assert match_context_mock.match_events_json == [{"matchhandelseid": 123}]
+                    assert match_context_mock.match_events_json == [
+                        {"matchhandelseid": 123}
+                    ]
+
 
 # Test for reporting a team official action event
 def test_report_team_event_official_action():
@@ -214,24 +277,46 @@ def test_report_team_event_official_action():
     scores_mock.regular_time.away = 0
 
     # Mock _get_event_details_from_input
-    event_details_mock = (1, {"name": "Team Official Action"}, 10, "Team Official Action", False, [{"spelareid": 100, "trojnummer": 1, "matchdeltagareid": 1000}])
+    event_details_mock = (
+        1,
+        {"name": "Team Official Action"},
+        10,
+        "Team Official Action",
+        False,
+        [{"spelareid": 100, "trojnummer": 1, "matchdeltagareid": 1000}],
+    )
 
     # Mock _report_team_official_action_event
-    report_team_official_action_event_mock = MagicMock(return_value=[{"matchhandelseid": 123}])
+    report_team_official_action_event_mock = MagicMock(
+        return_value=[{"matchhandelseid": 123}]
+    )
 
     # Patch the necessary functions
-    with patch('fogis_reporter.FogisDataParser.calculate_scores', return_value=scores_mock):
-        with patch('fogis_reporter._get_event_details_from_input', return_value=event_details_mock):
-            with patch('fogis_reporter._report_team_official_action_event', report_team_official_action_event_mock):
-                with patch('fogis_reporter._display_current_events_table'):
+    with patch(
+        "fogis_reporter.FogisDataParser.calculate_scores", return_value=scores_mock
+    ):
+        with patch(
+            "fogis_reporter._get_event_details_from_input",
+            return_value=event_details_mock,
+        ):
+            with patch(
+                "fogis_reporter._report_team_official_action_event",
+                report_team_official_action_event_mock,
+            ):
+                with patch("fogis_reporter._display_current_events_table"):
                     # Call the function
                     report_team_event(match_context_mock, 1)
 
                     # Check that _report_team_official_action_event was called with the correct parameters
-                    report_team_official_action_event_mock.assert_called_once_with(match_context_mock)
+                    report_team_official_action_event_mock.assert_called_once_with(
+                        match_context_mock
+                    )
 
                     # Check that match_context.match_events_json was updated
-                    assert match_context_mock.match_events_json == [{"matchhandelseid": 123}]
+                    assert match_context_mock.match_events_json == [
+                        {"matchhandelseid": 123}
+                    ]
+
 
 # Test for reporting with invalid input
 def test_report_team_event_invalid_input():
@@ -253,12 +338,25 @@ def test_report_team_event_invalid_input():
     event_details_mock = (None, None, None, None, None, None)
 
     # Patch the necessary functions
-    with patch('fogis_reporter.FogisDataParser.calculate_scores', return_value=scores_mock):
-        with patch('fogis_reporter._get_event_details_from_input', return_value=event_details_mock):
-            with patch('fogis_reporter._report_player_event') as report_player_event_mock:
-                with patch('fogis_reporter._report_substitution_event') as report_substitution_event_mock:
-                    with patch('fogis_reporter._report_team_official_action_event') as report_team_official_action_event_mock:
-                        with patch('fogis_reporter._display_current_events_table') as display_table_mock:
+    with patch(
+        "fogis_reporter.FogisDataParser.calculate_scores", return_value=scores_mock
+    ):
+        with patch(
+            "fogis_reporter._get_event_details_from_input",
+            return_value=event_details_mock,
+        ):
+            with patch(
+                "fogis_reporter._report_player_event"
+            ) as report_player_event_mock:
+                with patch(
+                    "fogis_reporter._report_substitution_event"
+                ) as report_substitution_event_mock:
+                    with patch(
+                        "fogis_reporter._report_team_official_action_event"
+                    ) as report_team_official_action_event_mock:
+                        with patch(
+                            "fogis_reporter._display_current_events_table"
+                        ) as display_table_mock:
                             # Call the function
                             report_team_event(match_context_mock, 1)
 
@@ -267,6 +365,7 @@ def test_report_team_event_invalid_input():
                             report_substitution_event_mock.assert_not_called()
                             report_team_official_action_event_mock.assert_not_called()
                             display_table_mock.assert_not_called()
+
 
 # Test for reporting with error in event reporting
 def test_report_team_event_error():
@@ -285,17 +384,34 @@ def test_report_team_event_error():
     scores_mock.regular_time.away = 0
 
     # Mock _get_event_details_from_input
-    event_details_mock = (1, {"name": "Goal", "goal": True}, 6, "Goal", True, [{"spelareid": 100, "trojnummer": 1, "matchdeltagareid": 1000}])
+    event_details_mock = (
+        1,
+        {"name": "Goal", "goal": True},
+        6,
+        "Goal",
+        True,
+        [{"spelareid": 100, "trojnummer": 1, "matchdeltagareid": 1000}],
+    )
 
     # Mock _report_player_event to raise ValueError
     def report_player_event_mock_func(*args, **kwargs):
         raise ValueError("Test error")
 
     # Patch the necessary functions
-    with patch('fogis_reporter.FogisDataParser.calculate_scores', return_value=scores_mock):
-        with patch('fogis_reporter._get_event_details_from_input', return_value=event_details_mock):
-            with patch('fogis_reporter._report_player_event', side_effect=report_player_event_mock_func):
-                with patch('fogis_reporter._display_current_events_table') as display_table_mock:
+    with patch(
+        "fogis_reporter.FogisDataParser.calculate_scores", return_value=scores_mock
+    ):
+        with patch(
+            "fogis_reporter._get_event_details_from_input",
+            return_value=event_details_mock,
+        ):
+            with patch(
+                "fogis_reporter._report_player_event",
+                side_effect=report_player_event_mock_func,
+            ):
+                with patch(
+                    "fogis_reporter._display_current_events_table"
+                ) as display_table_mock:
                     # Call the function
                     report_team_event(match_context_mock, 1)
 

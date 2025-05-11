@@ -1,21 +1,21 @@
-import pytest
-from unittest.mock import MagicMock, patch
 import sys
+from unittest.mock import MagicMock, patch
 
 # Mock the fogis_api_client module
-sys.modules['fogis_api_client'] = MagicMock()
-sys.modules['fogis_api_client.fogis_api_client'] = MagicMock()
-sys.modules['fogis_api_client.fogis_api_client'].FogisApiClient = MagicMock
-sys.modules['fogis_api_client.fogis_api_client'].EVENT_TYPES = {}
-sys.modules['fogis_api_client.fogis_api_client'].FogisLoginError = Exception
+sys.modules["fogis_api_client"] = MagicMock()
+sys.modules["fogis_api_client.fogis_api_client"] = MagicMock()
+sys.modules["fogis_api_client.fogis_api_client"].FogisApiClient = MagicMock
+sys.modules["fogis_api_client.fogis_api_client"].EVENT_TYPES = {}
+sys.modules["fogis_api_client.fogis_api_client"].FogisLoginError = Exception
 
 # Mock other dependencies
-sys.modules['fogis_data_parser'] = MagicMock()
-sys.modules['match_context'] = MagicMock()
-sys.modules['match_event_table_formatter'] = MagicMock()
+sys.modules["fogis_data_parser"] = MagicMock()
+sys.modules["match_context"] = MagicMock()
+sys.modules["match_event_table_formatter"] = MagicMock()
 
 # Now we can import from fogis_reporter
 from fogis_reporter import report_match_events_menu
+
 
 # Test for the match events menu - team 1 events
 def test_match_events_menu_team1():
@@ -29,16 +29,17 @@ def test_match_events_menu_team1():
     match_context_mock.team2_name = "Team 2"
 
     # Mock the input function to simulate user selecting option 1 (Team 1 events) and then exiting
-    with patch('builtins.input', side_effect=['1', '']):
+    with patch("builtins.input", side_effect=["1", ""]):
         # Mock the report_team_event function
-        with patch('fogis_reporter.report_team_event') as mock_report_team:
+        with patch("fogis_reporter.report_team_event") as mock_report_team:
             # Mock the _display_current_events_table function
-            with patch('fogis_reporter._display_current_events_table'):
+            with patch("fogis_reporter._display_current_events_table"):
                 # Call the function with our mock context
                 report_match_events_menu(match_context_mock)
 
                 # Assert that report_team_event was called with the correct parameters
                 mock_report_team.assert_called_once_with(match_context_mock, 1)
+
 
 # Test for the match events menu - team 2 events
 def test_match_events_menu_team2():
@@ -52,16 +53,17 @@ def test_match_events_menu_team2():
     match_context_mock.team2_name = "Team 2"
 
     # Mock the input function to simulate user selecting option 2 (Team 2 events) and then exiting
-    with patch('builtins.input', side_effect=['2', '']):
+    with patch("builtins.input", side_effect=["2", ""]):
         # Mock the report_team_event function
-        with patch('fogis_reporter.report_team_event') as mock_report_team:
+        with patch("fogis_reporter.report_team_event") as mock_report_team:
             # Mock the _display_current_events_table function
-            with patch('fogis_reporter._display_current_events_table'):
+            with patch("fogis_reporter._display_current_events_table"):
                 # Call the function with our mock context
                 report_match_events_menu(match_context_mock)
 
                 # Assert that report_team_event was called with the correct parameters
                 mock_report_team.assert_called_once_with(match_context_mock, 2)
+
 
 # Test for the match events menu - clear events with confirmation
 def test_match_events_menu_clear_confirm():
@@ -76,16 +78,19 @@ def test_match_events_menu_clear_confirm():
 
     # Mock the input function to simulate user selecting option 3 (Clear events),
     # typing "clear" to confirm, and then exiting
-    with patch('builtins.input', side_effect=['3', 'clear', '']):
+    with patch("builtins.input", side_effect=["3", "clear", ""]):
         # Mock the _handle_clear_events function
-        with patch('fogis_reporter._handle_clear_events', return_value={}) as mock_handle_clear:
+        with patch(
+            "fogis_reporter._handle_clear_events", return_value={}
+        ) as mock_handle_clear:
             # Mock the _display_current_events_table function
-            with patch('fogis_reporter._display_current_events_table'):
+            with patch("fogis_reporter._display_current_events_table"):
                 # Call the function with our mock context
                 report_match_events_menu(match_context_mock)
 
                 # Assert that _handle_clear_events was called
                 mock_handle_clear.assert_called_once_with(match_context_mock)
+
 
 # Test for the match events menu - clear events with cancellation
 def test_match_events_menu_clear_cancel():
@@ -100,16 +105,17 @@ def test_match_events_menu_clear_cancel():
 
     # Mock the input function to simulate user selecting option 3 (Clear events),
     # typing something other than "clear", and then exiting
-    with patch('builtins.input', side_effect=['3', 'no', '']):
+    with patch("builtins.input", side_effect=["3", "no", ""]):
         # Mock the _handle_clear_events function
-        with patch('fogis_reporter._handle_clear_events') as mock_handle_clear:
+        with patch("fogis_reporter._handle_clear_events") as mock_handle_clear:
             # Mock the _display_current_events_table function
-            with patch('fogis_reporter._display_current_events_table'):
+            with patch("fogis_reporter._display_current_events_table"):
                 # Call the function with our mock context
                 report_match_events_menu(match_context_mock)
 
                 # Assert that _handle_clear_events was NOT called
                 mock_handle_clear.assert_not_called()
+
 
 # Test for the match events menu - control events
 # Note: This test is commented out because the current menu doesn't have a control events option
@@ -159,6 +165,7 @@ def test_match_events_menu_clear_cancel():
 #                 # Assert that report_staff_events_menu was called with the correct parameters
 #                 mock_report_staff.assert_called_once_with(match_context_mock)
 
+
 # Test for the match events menu - invalid input
 def test_match_events_menu_invalid_input():
     """Test entering invalid input in the match events menu."""
@@ -171,14 +178,18 @@ def test_match_events_menu_invalid_input():
     match_context_mock.team2_name = "Team 2"
 
     # Mock the input function to simulate user entering invalid input and then exiting
-    with patch('builtins.input', side_effect=['invalid', '']):
+    with patch("builtins.input", side_effect=["invalid", ""]):
         # Mock various functions to ensure they are not called
-        with patch('fogis_reporter.report_team_event') as mock_report_team:
-            with patch('fogis_reporter._handle_clear_events') as mock_handle_clear:
-                with patch('fogis_reporter.report_control_events_menu') as mock_report_control:
-                    with patch('fogis_reporter.report_staff_events_menu') as mock_report_staff:
+        with patch("fogis_reporter.report_team_event") as mock_report_team:
+            with patch("fogis_reporter._handle_clear_events") as mock_handle_clear:
+                with patch(
+                    "fogis_reporter.report_control_events_menu"
+                ) as mock_report_control:
+                    with patch(
+                        "fogis_reporter.report_staff_events_menu"
+                    ) as mock_report_staff:
                         # Mock the _display_current_events_table function
-                        with patch('fogis_reporter._display_current_events_table'):
+                        with patch("fogis_reporter._display_current_events_table"):
                             # Call the function with our mock context
                             report_match_events_menu(match_context_mock)
 
