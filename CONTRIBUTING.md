@@ -275,9 +275,9 @@ flake8 path/to/file.py
 mypy path/to/file.py
 ```
 
-### Pre-commit Hooks
+### Pre-commit Hooks and CI/CD Pipeline
 
-We use pre-commit to automatically run checks before each commit:
+We use pre-commit to automatically run checks before each commit. The same checks are also run in the CI/CD pipeline to ensure consistency between local development and CI/CD:
 
 ```bash
 # Set up pre-commit hooks with the dedicated script
@@ -288,6 +288,31 @@ pre-commit run --files path/to/file.py
 
 # Run pre-commit on all files
 pre-commit run --all-files
+```
+
+### CI/CD Pipeline
+
+The CI/CD pipeline runs the following checks:
+
+1. **Code Quality Checks**: Runs pre-commit hooks on all files
+2. **Python CI**: Runs tests, linting, and type checking
+
+The CI/CD pipeline is configured to fail if any of these checks fail. This ensures that all code merged into the repository meets our quality standards.
+
+If you encounter CI/CD failures, you can run the same checks locally to debug the issues:
+
+```bash
+# Run pre-commit hooks on all files
+pre-commit run --all-files
+
+# Run tests
+pytest
+
+# Run linting
+flake8 .
+
+# Run type checking
+mypy --config-file=mypy.ini
 ```
 
 The setup script will:
