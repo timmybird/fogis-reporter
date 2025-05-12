@@ -1,0 +1,38 @@
+[run]
+source = .
+omit =
+    # Omit test files
+    tests/*
+    # Omit virtual environment
+    .venv/*
+    venv/*
+    # Omit setup files
+    setup.py
+    # Omit scripts directory
+    scripts/*
+
+[report]
+# Exclude lines with pragma comments
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    raise NotImplementedError
+    if __name__ == .__main__.:
+    pass
+    raise ImportError
+    except ImportError:
+
+# Show missing lines in report
+show_missing = True
+
+# Set a reasonable precision
+precision = 2
+
+[html]
+directory = htmlcov
+
+[xml]
+output = coverage.xml
+
+[json]
+output = coverage.json
