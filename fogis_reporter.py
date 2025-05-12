@@ -60,7 +60,7 @@ def select_match_interactively(matches):
             if 0 <= match_index < len(matches):
                 selected_match = matches[match_index]
                 print(f"\nSelected: {selected_match['label']}")
-                return
+                return selected_match
             else:
                 print("Invalid match number selected. Please try again.")
         except ValueError:
@@ -131,7 +131,7 @@ def display_main_menu(match_context: MatchContext):
         print(f"  MATCH: {match_context.team1_name} vs {match_context.team2_name}")
         print(
             f"CURRENT SCORE: {match_context.team1_name} {scores.regular_time.home} -"
-            "{scores.regular_time.away} {match_context.team2_name}"
+            f"{scores.regular_time.away} {match_context.team2_name}"
         )
         print("=" * 60)
 
@@ -437,12 +437,10 @@ def report_control_events_menu(match_context: MatchContext):
         # Create a more visually appealing header with match info
         print("\n" + "=" * 60)
         print(
-            f"TIME CONTROL EVENTS - {match_context.team1_name} vs"
-            "{match_context.team2_name}"
+            f"TIME CONTROL EVENTS - {match_context.team1_name} vs {match_context.team2_name}"
         )
         print(
-            f"CURRENT SCORE: {match_context.team1_name} {scores.regular_time.home} -"
-            "{scores.regular_time.away} {match_context.team2_name}"
+            f"CURRENT SCORE: {match_context.team1_name} {scores.regular_time.home} - {scores.regular_time.away} {match_context.team2_name}"
         )
         print("=" * 60)
 
@@ -466,13 +464,11 @@ def report_control_events_menu(match_context: MatchContext):
 
         # Display smart timestamp input instructions
         print(
-            "\nEnter a timestamp to automatically report the appropriate time control"
-            "event:"
+            "\nEnter a timestamp to automatically report the appropriate time control event:"
         )
         print("  - Enter the minute number when the event occurred")
         print(
-            "- The system will automatically determine if it's a period start, period"
-            "end, or game end"
+            "  - The system will automatically determine if it's a period start, period end, or game end"
         )
         print("\nValid timestamps for this match:")
 
@@ -545,14 +541,12 @@ def report_control_events_menu(match_context: MatchContext):
                 except ValueError as e:
                     print(f"Error: {e}")
                     print(
-                        "Please enter a valid timestamp corresponding to a period start"
-                        "or end."
+                        "Please enter a valid timestamp corresponding to a period start or end."
                     )
 
             except ValueError:
                 print(
-                    "Invalid input. Please enter a valid number, timestamp (e.g., 45,"
-                    "45+2), or option [1-2]."
+                    "Invalid input. Please enter a valid number, timestamp (e.g., 45, 45+2), or option [1-2]."
                 )
 
 
@@ -614,7 +608,7 @@ def report_results_menu(match_context: MatchContext):
 
         print(
             f"CURRENT SCORE: {match_context.team1_name} {scores.regular_time.home} -"
-            "{scores.regular_time.away} {match_context.team2_name}"
+            f"{scores.regular_time.away} {match_context.team2_name}"
         )
         print("=" * 60)
 
@@ -746,31 +740,21 @@ def _add_control_event_with_implicit_events(
         event_type_id: int, period: int
     ) -> Optional[Dict[str, Any]]:
         """Find an existing event of the given type and period."""
-        # Print debug information
-        print(f"Looking for event with type {event_type_id} and period {period}")
-        print(f"Current events: {match_context.match_events_json}")
-
         for event in match_context.match_events_json:
             # Check if the required keys exist in the event data
             if "matchhandelsetypid" not in event or "period" not in event:
                 print(f"Warning: Event missing required keys. Available keys: {list(event.keys())}")
                 continue
 
-            # Convert values to integers for comparison
-            event_type = int(event["matchhandelsetypid"])
-            event_period = int(event["period"])
-
-            print(f"Checking event: type={event_type}, period={event_period}")
-
-            if event_type == event_type_id and event_period == period:
-                print(f"Found matching event: {event}")
+            if (
+                event["matchhandelsetypid"] == event_type_id
+                and event["period"] == period
+            ):
                 return dict(event)
-
-        print(f"No matching event found for type {event_type_id} and period {period}")
         return None
 
     def _report_event_to_api(
-        event_json: Dict[str, Any]
+        event_json: Dict[str, Any],
     ) -> Optional[List[Dict[str, Any]]]:
         action_type = None
         try:
@@ -835,18 +819,15 @@ def _add_control_event_with_implicit_events(
             if api_response_start is not None:
                 match_context.match_events_json = api_response_start  # Update context
                 print(
-                    "Context's match_events_json UPDATED with API response (Period"
-                    "Start Period {period})."
+                    f"Context's match_events_json UPDATED with API response (Period Start Period {period})."
                 )
             else:
                 print(
-                    f"WARNING: Period Start event (Period {period}) NOT reported to API!"
-                    "Context NOT updated for Period Start."
+                    f"WARNING: Period Start event (Period {period}) NOT reported to API! Context NOT updated for Period Start."
                 )
         else:
             print(
-                f"Found existing Period Start event for period {period} (ID:"
-                "{existing_period_start['matchhandelseid']})"
+                f"Found existing Period Start event for period {period} (ID: {existing_period_start['matchhandelseid']})"
             )
 
         # Check for existing Period End event
@@ -854,8 +835,7 @@ def _add_control_event_with_implicit_events(
         if existing_period_end:
             # Update existing Period End event
             print(
-                f"Updating existing Period End event for period {period} (ID:"
-                "{existing_period_end['matchhandelseid']})"
+                f"Updating existing Period End event for period {period} (ID: {existing_period_end['matchhandelseid']})"
             )
             # Copy the control_event data but use the existing event ID
             updated_event = control_event.copy()
@@ -869,13 +849,11 @@ def _add_control_event_with_implicit_events(
         if api_response_end is not None:
             match_context.match_events_json = api_response_end  # Update context
             print(
-                "Context's match_events_json UPDATED with API response (Period End"
-                "Period {period})."
+                f"Context's match_events_json UPDATED with API response (Period End Period {period})."
             )
         else:
             print(
-                f"WARNING: Period End event (Period {period}) NOT reported to API!"
-                "Context NOT updated for Period End."
+                f"WARNING: Period End event (Period {period}) NOT reported to API! Context NOT updated for Period End."
             )
 
     elif event_type_id == 23:  # Game End (23)
@@ -898,8 +876,7 @@ def _add_control_event_with_implicit_events(
                 "matchdeltagareid": 0,
                 "matchdeltagareid2": 0,
                 "fotbollstypId": 1,
-                "relateradTillMatchhandelseID": 0,
-                "hemmamal": team1_score,
+                "relateradTillMatchhandelseID" "hemmamal": team1_score,
                 "bortamal": team2_score,
             }
             print(
@@ -912,19 +889,15 @@ def _add_control_event_with_implicit_events(
                     api_response_period_end  # Update context
                 )
                 print(
-                    "Context's match_events_json UPDATED with API response (Implicit"
-                    "Period End Period {period} with Game End)."
+                    f"Context's match_events_json UPDATED with API response (Implicit Period End Period {period} with Game End)."
                 )
             else:
                 print(
-                    f"WARNING: Implicit Period End event (Period {period}, with Game"
-                    "End) NOT reported to API! Context NOT updated for implicit Period"
-                    "End."
+                    f"WARNING: Implicit Period End event (Period {period}, with Game End) NOT reported to API! Context NOT updated for implicit Period End."
                 )
         else:
             print(
-                f"Found existing Period End event for period {period} (ID:"
-                "{existing_period_end['matchhandelseid']})"
+                f"Found existing Period End event for period {period} (ID: {existing_period_end['matchhandelseid']})"
             )
 
         # Check for existing Period Start (31) for the *current* period
@@ -952,26 +925,21 @@ def _add_control_event_with_implicit_events(
                 "bortamal": team2_score,
             }
             print(
-                f"Creating new Period Start event for period {period} (implicit with"
-                "Game End)"
+                f"Creating new Period Start event for period {period} (implicit with Game End)"
             )
             api_response_start = _report_event_to_api(period_start_event)
             if api_response_start is not None:
                 match_context.match_events_json = api_response_start  # Update context
                 print(
-                    "Context's match_events_json UPDATED with API response (Period"
-                    "Start Period {period}, implicit with Game End)."
+                    f"Context's match_events_json UPDATED with API response (Period Start Period {period}, implicit with Game End)."
                 )
             else:
                 print(
-                    f"WARNING: Implicit Period Start event (Period {period}, with Game"
-                    "End) NOT reported to API! Context NOT updated for implicit Period"
-                    "Start."
+                    f"WARNING: Implicit Period Start event (Period {period}, with Game End) NOT reported to API! Context NOT updated for implicit Period Start."
                 )
         else:
             print(
-                f"Found existing Period Start event for period {period} (ID:"
-                "{existing_period_start['matchhandelseid']})"
+                f"Found existing Period Start event for period {period} (ID: {existing_period_start['matchhandelseid']})"
             )
 
         # Check for existing Game End event
@@ -994,13 +962,11 @@ def _add_control_event_with_implicit_events(
         if api_response_game_end is not None:
             match_context.match_events_json = api_response_game_end  # Update context
             print(
-                "Context's match_events_json UPDATED with API response (Game End Period"
-                "{period})."
+                f"Context's match_events_json UPDATED with API response (Game End Period {period})."
             )
         else:
             print(
-                f"WARNING: Game End event (Period {period}) NOT reported to API! Context"
-                "NOT updated for Game End."
+                f"WARNING: Game End event (Period {period}) NOT reported to API! Context NOT updated for Game End."
             )
 
     else:  # Period Start (31) - if we ever allow explicit Period Start input
@@ -1009,8 +975,7 @@ def _add_control_event_with_implicit_events(
         if existing_period_start:
             # Update existing Period Start event
             print(
-                f"Updating existing Period Start event for period {period} (ID:"
-                "{existing_period_start['matchhandelseid']})"
+                f"Updating existing Period Start event for period {period} (ID: {existing_period_start['matchhandelseid']})"
             )
             # Copy the control_event data but use the existing event ID
             updated_event = control_event.copy()
@@ -1027,8 +992,7 @@ def _add_control_event_with_implicit_events(
                 api_response_period_start  # Update context
             )
             print(
-                "Context's match_events_json UPDATED with API response (Period Start"
-                "Period {period})."
+                f"Context's match_events_json UPDATED with API response (Period Start Period {period})."
             )
         else:
             print(
@@ -1106,8 +1070,7 @@ def _report_substitution_event(
 
     # Display confirmation of selected players
     print(
-        f"\nSubstitution: {player_name_in} (#{jersey_number_in_int}) IN,"
-        "{player_name_out} (#{jersey_number_out_int}) OUT for {team_name}"
+        f"\nSubstitution: {player_name_in} (#{jersey_number_in_int}) IN, {player_name_out} (#{jersey_number_out_int}) OUT for {team_name}"
     )
 
     minute_str = input(
@@ -1133,7 +1096,7 @@ def _report_substitution_event(
         "period": period,
         "matchminut": minute,
         "sekund": 0,
-        "matchhandelsetypid": EVENT_TYPES[17],  # Substitution event type ID (17)
+        "matchhandelsetypid": 17,  # Substitution event type ID (17)
         "matchlagid": game_team_id,
         "spelareid": int(player_id_in),
         "spelareid2": int(player_id_out),
@@ -1141,18 +1104,27 @@ def _report_substitution_event(
         "bortamal": team2_score,
         "planpositionx": "-1",
         "planpositiony": "-1",
-        "matchdeltagareid": int(game_participant_id_in)
-        if game_participant_id_in
-        else 0,
-        "matchdeltagareid2": int(game_participant_id_out)
-        if game_participant_id_out
-        else 0,
+        "matchdeltagareid": (
+            int(game_participant_id_in) if game_participant_id_in else 0
+        ),
+        "matchdeltagareid2": (
+            int(game_participant_id_out) if game_participant_id_out else 0
+        ),
         "fotbollstypId": 1,
         "relateradTillMatchhandelseID": 0,
     }
 
     try:
+        # Debug: Print the event data being sent to the API
+        print("\nDEBUG - Sending substitution event data to API:")
+        print(json.dumps(event_data, indent=2, ensure_ascii=False))
+
         report_response = api_client.report_match_event(event_data)
+
+        # Debug: Print the API response
+        print("\nDEBUG - API Response:")
+        print(json.dumps(report_response, indent=2, ensure_ascii=False) if report_response else "None")
+
         if report_response:
             print("\nMatch Event Report Response (Substitution):")
             print("Event Type: Substitution")
@@ -1168,8 +1140,9 @@ def _report_substitution_event(
                 else None
             )
         return None
-    except Exception:
+    except Exception as e:
         print("\nFailed to report substitution event.")
+        print(f"DEBUG - Exception details: {type(e).__name__}: {str(e)}")
         return None  # Indicate failure
 
 
@@ -1198,7 +1171,11 @@ def _report_team_official_action_event(
         return None  # Indicate failure
 
     action_data = {
-        "matchlagledareid": team_official_id,
+        "matchid": match_id,  # Required field
+        "matchlagledareid": team_official_id,  # Required field
+        "matchlagid": match_context.team1_id,  # Required field - using team1_id as default
+        "matchlagledaretypid": 1,  # Required field - using 1 (Yellow Card) as default
+        "matchminut": avvisadmatchminut,  # Optional field
         "lagrollid": lagrollid,
         "avvisadmatchminut": avvisadmatchminut,
         "avvisadlindrig": avvisadlindrig,
@@ -1208,7 +1185,16 @@ def _report_team_official_action_event(
     }
 
     try:
+        # Debug: Print the action data being sent to the API
+        print("\nDEBUG - Sending team official action data to API:")
+        print(json.dumps(action_data, indent=2, ensure_ascii=False))
+
         report_response = api_client.report_team_official_action(action_data)
+
+        # Debug: Print the API response
+        print("\nDEBUG - API Response:")
+        print(json.dumps(report_response, indent=2, ensure_ascii=False) if report_response else "None")
+
         if report_response:
             print("\nTeam Official Action Report Response:")
             print("Event Type: Team Official Action")
@@ -1224,8 +1210,9 @@ def _report_team_official_action_event(
                 else None
             )
         return None
-    except Exception:
+    except Exception as e:
         print("\nFailed to report team official action.")
+        print(f"DEBUG - Exception details: {type(e).__name__}: {str(e)}")
         return None  # Indicate failure
 
 
@@ -1395,14 +1382,22 @@ def _report_goal_with_smart_input(
 
     # Report the event
     try:
+        # Debug: Print the event data being sent to the API
+        print("\nDEBUG - Sending event data to API:")
+        print(json.dumps(event_data, indent=2, ensure_ascii=False))
+
         api_response = api_client.report_match_event(event_data)
+
+        # Debug: Print the API response
+        print("\nDEBUG - API Response:")
+        print(json.dumps(api_response, indent=2, ensure_ascii=False) if api_response else "None")
+
         if api_response is None:
             print(f"Error reporting {event_type_name} for player #{jersey_number_int}.")
             return None
 
         print(
-            f"{event_type_name} reported for player #{jersey_number_int} at minute"
-            "{minute}."
+            f"{event_type_name} reported for player #{jersey_number_int} at minute {minute}."
         )
         match_events_json: Optional[List[Dict[str, Any]]] = safe_fetch_json_list(
             api_client.fetch_match_events_json, match_id
@@ -1474,8 +1469,7 @@ def _report_player_event(
     )
 
     minute_str = input(
-        f"Minute when {event_type_name} for {player_name} (#{jersey_number_int})"
-        "occurred (1-90, or '45+X' for stoppage time):"
+        f"Minute when {event_type_name} for {player_name} (#{jersey_number_int}) occurred (1-90, or '45+X' for stoppage time):"
     )
     try:
         minute, period = _parse_minute_input(
@@ -1522,7 +1516,16 @@ def _report_player_event(
         event_data["bortamal"] = team2_score
 
     try:
+        # Debug: Print the event data being sent to the API
+        print("\nDEBUG - Sending player event data to API:")
+        print(json.dumps(event_data, indent=2, ensure_ascii=False))
+
         report_response = api_client.report_match_event(event_data)
+
+        # Debug: Print the API response
+        print("\nDEBUG - API Response:")
+        print(json.dumps(report_response, indent=2, ensure_ascii=False) if report_response else "None")
+
         if report_response:
             print("\nMatch Event Report Response:")
             print(f"Event Type: {event_type_name}")
@@ -1538,8 +1541,9 @@ def _report_player_event(
                 else None
             )
         return None
-    except Exception:
+    except Exception as e:
         print("\nFailed to report match event.")
+        print(f"DEBUG - Exception details: {type(e).__name__}: {str(e)}")
         return None  # Indicate failure
 
 
@@ -1568,17 +1572,14 @@ def _display_current_events_table(match_context: MatchContext):
     # Create a more visually appealing header
     print("\n" + "=" * 60)
     print(
-        f"MATCH EVENTS SUMMARY - {match_context.team1_name} vs"
-        "{match_context.team2_name}"
+        f"MATCH EVENTS SUMMARY - {match_context.team1_name} vs {match_context.team2_name}"
     )
     print(
-        f"CURRENT SCORE: {match_context.team1_name} {team1_score} - {team2_score}"
-        "{match_context.team2_name}"
+        f"CURRENT SCORE: {match_context.team1_name} {team1_score} - {team2_score} {match_context.team2_name}"
     )
     if halftime_score_team1 is not None and halftime_score_team2 is not None:
         print(
-            f"HALFTIME SCORE: {match_context.team1_name} {halftime_score_team1} -"
-            "{halftime_score_team2} {match_context.team2_name}"
+            f"HALFTIME SCORE: {match_context.team1_name} {halftime_score_team1} - {halftime_score_team2} {match_context.team2_name}"
         )
     print("=" * 60)
 
@@ -1633,6 +1634,34 @@ def _get_event_details_from_input(
                         and "Card" in event_type["name"]
                     ):
                         print(f"{event_type_id}: {event_type['name']}")
+
+                # Get card selection from user
+                event_choice_str = input("Enter card type number:")
+
+                if event_choice_str.isdigit():
+                    event_choice = int(event_choice_str)
+                    if event_choice in EVENT_TYPES and "Card" in EVENT_TYPES[event_choice]["name"]:
+                        selected_event_type = EVENT_TYPES[event_choice]
+                        event_type_id = event_choice
+                        event_type_name = selected_event_type["name"]
+                        is_goal_event = selected_event_type.get("goal", False)
+                        current_team_players_json = (
+                            team1_players_json if team_number == 1 else team2_players_json
+                        )
+                        return (
+                            team_number,
+                            selected_event_type,
+                            event_type_id,
+                            event_type_name,
+                            is_goal_event,
+                            current_team_players_json,
+                        )
+                    else:
+                        print(f"Invalid card type: {event_choice_str}")
+                        return None, None, None, None, None, None
+                else:
+                    print(f"Invalid input: {event_choice_str}")
+                    return None, None, None, None, None, None
             elif event_category == "3":  # Substitution
                 print("\nSubstitution Selected")
                 event_choice_str = "17"  # Hardcode to Substitution event type
@@ -1644,7 +1673,14 @@ def _get_event_details_from_input(
                 current_team_players_json = (
                     team1_players_json if team_number == 1 else team2_players_json
                 )
-                return None, None, None, None, None, None
+                return (
+                    team_number,
+                    selected_event_type,
+                    event_type_id,
+                    event_type_name,
+                    is_goal_event,
+                    current_team_players_json,
+                )
             if event_category == "4":  # Team Official Action
                 # Handle Team Official Action
                 event_choice_str = ""
@@ -1673,13 +1709,14 @@ def _get_event_details_from_input(
                     print("Team Official Action event type not found.")
                     return None, None, None, None, None, None
 
-            # Original behavior - show all event types
+        # If no specific category handling above, or no category specified, show all event types
+        if not event_category or event_category not in ["2", "3", "4"]:
             print("\nSelect Event Type:")
             for event_type_id, event_type in EVENT_TYPES.items():
                 if not event_type.get("control_event") and event_type_id is not None:
                     print(f"{event_type_id}: {event_type['name']}")
 
-        # For card events or when no category is specified
+        # Get event type from user
         event_choice_str = input("Enter event type number:")
 
         if event_choice_str.isdigit():
@@ -1790,7 +1827,8 @@ def _report_match_results_interactively(match_context: MatchContext):
                 "Match result reporting verified successfully! Fetched scores match"
                 "reported scores."
             )
-            # _mark_reporting_finished_with_error_handling(match_context) # Mark reporting finished - not yet implemented in API Client
+            # Removed call to _mark_reporting_finished_with_error_handling
+            # This feature is implemented but not enabled to avoid unexpected API calls
 
             # --- Example of accessing and displaying fetched scores (optional) ---
             # print("\nFetched Scores from API:")
@@ -1810,6 +1848,7 @@ def _report_match_results_interactively(match_context: MatchContext):
         print("Match result reporting and verification FAILED.")
 
     print("\n--- Match Result Reporting finished ---")
+    return  # Return to report_results_menu
 
 
 def _get_score_input_from_user(
@@ -1884,8 +1923,9 @@ def _get_score_input_from_user(
 
 
 def _mark_reporting_finished_with_error_handling(match_context: MatchContext):
-    """Prompts for confirmation and marks match reporting as finished with robust" \
-    "error handling.
+    """Prompts for confirmation and marks match reporting as finished with robust
+    error handling. Checks for the 'matchrapportgodkandavdomare' property to verify
+    completion rather than displaying the entire match object.
     """
     # --- Prompt before marking reporting finished ---
     while True:  # Loop until valid input
@@ -1909,18 +1949,25 @@ def _mark_reporting_finished_with_error_handling(match_context: MatchContext):
             match_id
         )  # Call mark_reporting_finished
         if finished_response:
-            print("\nMatch Reporting Marked as Finished Successfully!")
-            print(json.dumps(finished_response, indent=2, ensure_ascii=False))
+            # Check for the matchrapportgodkandavdomare property to verify completion
+            if "matchrapportgodkandavdomare" in finished_response:
+                print("\nMatch Reporting Marked as Finished Successfully!")
+                print(
+                    f"Referee confirmation status: {finished_response['matchrapportgodkandavdomare']}"
+                )
+            else:
+                print("\nMatch Reporting Marked as Finished Successfully!")
+                print("(No referee confirmation status available in the response)")
         else:
             print(
-                "\nWarning: Failed to mark match reporting as finished (No response"
+                "\nWarning: Failed to mark match reporting as finished (No response "
                 "from API)."
-            )  # Indicate general failure, they need to be explored over time.
+            )
     except Exception as e:  # Catch broad exception for robustness
         print("\nERROR marking match reporting as finished!")
         print(f"Exception details: {e}")  # Print exception details for debugging
         api_error_message = getattr(
-            e, "response", getattr(e, "message", "No API error message" "available")
+            e, "response", getattr(e, "message", "No API error message available")
         )  # Try to extract API error, handle different exception types
         print(f"API Error (if available): {api_error_message}")
 
@@ -2015,8 +2062,7 @@ def main():
 
     if not fogis_username or not fogis_password:
         print(
-            "\nError: FOGIS_USERNAME and FOGIS_PASSWORD environment variables must be"
-            "set."
+            "\nError: FOGIS_USERNAME and FOGIS_PASSWORD environment variables must be set."
         )
         print("Please set these variables and try again.")
         return
