@@ -34,7 +34,7 @@ def select_match_interactively(matches):
     """
     if not matches:
         print("No matches available to select.")
-        return
+        return None
 
     # Create a more visually appealing header
     print("\n" + "=" * 60)
@@ -54,7 +54,7 @@ def select_match_interactively(matches):
         match_choice = input("Select match number: ")
         if match_choice == "":
             print("Exiting...")
-            return
+            return None
         try:
             match_index = int(match_choice) - 1
             if 0 <= match_index < len(matches):
@@ -743,7 +743,9 @@ def _add_control_event_with_implicit_events(
         for event in match_context.match_events_json:
             # Check if the required keys exist in the event data
             if "matchhandelsetypid" not in event or "period" not in event:
-                print(f"Warning: Event missing required keys. Available keys: {list(event.keys())}")
+                print(
+                    f"Warning: Event missing required keys. Available keys: {list(event.keys())}"
+                )
                 continue
 
             if (
@@ -1123,7 +1125,11 @@ def _report_substitution_event(
 
         # Debug: Print the API response
         print("\nDEBUG - API Response:")
-        print(json.dumps(report_response, indent=2, ensure_ascii=False) if report_response else "None")
+        print(
+            json.dumps(report_response, indent=2, ensure_ascii=False)
+            if report_response
+            else "None"
+        )
 
         if report_response:
             print("\nMatch Event Report Response (Substitution):")
@@ -1193,7 +1199,11 @@ def _report_team_official_action_event(
 
         # Debug: Print the API response
         print("\nDEBUG - API Response:")
-        print(json.dumps(report_response, indent=2, ensure_ascii=False) if report_response else "None")
+        print(
+            json.dumps(report_response, indent=2, ensure_ascii=False)
+            if report_response
+            else "None"
+        )
 
         if report_response:
             print("\nTeam Official Action Report Response:")
@@ -1390,7 +1400,11 @@ def _report_goal_with_smart_input(
 
         # Debug: Print the API response
         print("\nDEBUG - API Response:")
-        print(json.dumps(api_response, indent=2, ensure_ascii=False) if api_response else "None")
+        print(
+            json.dumps(api_response, indent=2, ensure_ascii=False)
+            if api_response
+            else "None"
+        )
 
         if api_response is None:
             print(f"Error reporting {event_type_name} for player #{jersey_number_int}.")
@@ -1524,7 +1538,11 @@ def _report_player_event(
 
         # Debug: Print the API response
         print("\nDEBUG - API Response:")
-        print(json.dumps(report_response, indent=2, ensure_ascii=False) if report_response else "None")
+        print(
+            json.dumps(report_response, indent=2, ensure_ascii=False)
+            if report_response
+            else "None"
+        )
 
         if report_response:
             print("\nMatch Event Report Response:")
@@ -1635,18 +1653,24 @@ def _get_event_details_from_input(
                     ):
                         print(f"{event_type_id}: {event_type['name']}")
 
-                # Get card selection from user
+                # Get card type selection directly instead of falling through to general menu
                 event_choice_str = input("Enter card type number:")
 
                 if event_choice_str.isdigit():
                     event_choice = int(event_choice_str)
-                    if event_choice in EVENT_TYPES and "Card" in EVENT_TYPES[event_choice]["name"]:
+                    if (
+                        event_choice in EVENT_TYPES
+                        and not EVENT_TYPES[event_choice].get("control_event")
+                        and "Card" in EVENT_TYPES[event_choice]["name"]
+                    ):
                         selected_event_type = EVENT_TYPES[event_choice]
                         event_type_id = event_choice
                         event_type_name = selected_event_type["name"]
                         is_goal_event = selected_event_type.get("goal", False)
                         current_team_players_json = (
-                            team1_players_json if team_number == 1 else team2_players_json
+                            team1_players_json
+                            if team_number == 1
+                            else team2_players_json
                         )
                         return (
                             team_number,
@@ -1657,11 +1681,12 @@ def _get_event_details_from_input(
                             current_team_players_json,
                         )
                     else:
-                        print(f"Invalid card type: {event_choice_str}")
+                        print("Invalid card type selected.")
                         return None, None, None, None, None, None
                 else:
-                    print(f"Invalid input: {event_choice_str}")
+                    print("Invalid input. Please enter a number for card type.")
                     return None, None, None, None, None, None
+
             elif event_category == "3":  # Substitution
                 print("\nSubstitution Selected")
                 event_choice_str = "17"  # Hardcode to Substitution event type
